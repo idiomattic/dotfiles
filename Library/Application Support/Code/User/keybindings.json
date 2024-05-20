@@ -1,0 +1,18 @@
+// Place your key bindings in this file to override the defaults
+[
+  {
+    "key": "shift+cmd+r cmd+t",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Run fmt"
+  },
+  {
+    "key": "shift+cmd+b shift+cmd+t",
+    "command": "workbench.action.tasks.build",
+    "when": "taskCommandsRegistered"
+  },
+  {
+    "key": "shift+cmd+b",
+    "command": "-workbench.action.tasks.build",
+    "when": "taskCommandsRegistered"
+  }
+]

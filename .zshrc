@@ -71,6 +71,10 @@ alias gcd='git checkout develop'
 alias gcm='git checkout master'
 alias grelease="git push origin develop --tags && git checkout master && git push origin master && git checkout develop"
 
+gitbranchname() {
+  git branch --show-current | tr -d "\n"
+}
+
 gbdelete() {
   feature_branch=$(gitbranchname)
 
@@ -87,22 +91,18 @@ gbdelete() {
   fi
 }
 
+gbcopy() {
+  if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    branch_name=$(gitbranchname)
+    pbcopy <<< "$branch_name"
+    echo "'$branch_name' copied to clipboard"
+  else
+    echo "Not in a Git repository"
+    return 1
+  fi
+}
+
 # Shell integrations
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(/opt/homebrew/bin/brew shellenv)"
-
-# ENV VARS
-export SEARCH_VIS_API_KEY_PROD="NsteGWN6bwGj3CbuZTiWPXegRdXHkoLxrU4FG82ag29fnVD2"
-export SEARCH_VIS_API_KEY="vegk78t6ikmzKT9HjF7HTTe8Twr4v36XP2sdxEaQPU26n2BN"
-export SEARCH_BOOSTING_TEST_VARIANT="gEbnJ3By89vQ"
-export SEARCH_RANK_V1_TEST_VARIANT="pBZr2dXH6t4i"
-export SEARCH_RANK_V2_TEST_VARIANT="8qXWCTFX7QPG"
-export SEARCH_RANK_V3_TEST_VARIANT="hJscCQaGsE7x"
-export SEARCH_MAX_HITS_EXPANDED="1000"
-export SEARCH_ILB_IP="10.138.0.66"
-export SEARCH_EXPERIMENT_ILB_IP="10.138.0.67"
-export SEARCH_ILB_IP_DATA_ES="10.138.1.41"
-export SEARCH_METRICS_BY_LISTING_KEYWORD="gs://ps-prod-search-csv/search_metrics_by_listing_keyword.csv"
-export KEYWORD_TAXONOMY="gs://ps-prod-cluster/output_airflow/prod/search/keyword_taxonomy.csv"
-export LISTING_METRICS="gs://ps-prod-search-csv/listing_metrics.csv"

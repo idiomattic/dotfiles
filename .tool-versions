@@ -1,5 +1,5 @@
 java adoptopenjdk-11.0.22+7
-clojure 1.11.2.1446
+clojure 1.11.3.1463
 nodejs 18.9.1
 lein 2.9.9
 python 2.7

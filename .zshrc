@@ -35,6 +35,7 @@ zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
+zinit light reegnz/jq-zsh-plugin
 
 # Add in snippets
 zinit snippet OMZP::git
@@ -67,11 +68,15 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
+# Set default editory to VSCode
+export EDITOR="code -w"
+
 # Aliases
 alias ls='ls --color'
 alias gcd='git checkout develop'
 alias gcm='git checkout master'
 alias grelease="git push origin develop --tags && git checkout master && git push origin master && git checkout develop"
+alias gsubup="git submodule update --init --recursive"
 
 gitbranchname() {
   git branch --show-current | tr -d "\n"

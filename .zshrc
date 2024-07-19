@@ -72,11 +72,39 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 export EDITOR="code -w"
 
 # Aliases
-alias ls='ls --color'
 alias gcd='git checkout develop'
 alias gcm='git checkout master'
 alias grelease="git push origin develop --tags && git checkout master && git push origin master && git checkout develop"
 alias gsubup="git submodule update --init --recursive"
+
+alias gpgx="export GPG_TTY=$(tty)"
+
+alias grep='rg'
+alias ls='ls --color'
+alias cat='bat'
+alias bathelp='bat --plain --language=help'
+alias -g -- -h='-h 2>&1 | bat --language=help --style=plain'
+alias -g -- --help='--help 2>&1 | bat --language=help --style=plain'
+
+help() {
+    "$@" --help 2>&1 | bathelp
+}
+
+urldecode() {
+  echo -n $1 | python3 -c "import sys; from urllib.parse import unquote; print(unquote(sys.stdin.read()));"
+}
+
+decrypt_secrets() {
+    for env in "$@"; do
+        cd "configs/$env/encrypted" && pskms -c "$env" -f service-keys.env.encrypted && cd ../../..
+    done
+}
+
+encrypt_secrets() {
+    for env in "$@"; do
+        cd "configs/$env/encrypted" && pskms -c "$env" -f service-keys.env && cd ../../..
+    done
+}
 
 gitbranchname() {
   git branch --show-current | tr -d "\n"
@@ -113,3 +141,10 @@ gbcopy() {
 eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(/opt/homebrew/bin/brew shellenv)"
+
+prodVPNOTP() {
+	op read "op://Private/ps-prod-openvpn01 VPN credentials/one-time password?attribute=otp"
+}
+cpvpncode() {
+  prodVPNOTP | pbcopy
+}

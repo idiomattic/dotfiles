@@ -78,13 +78,16 @@ alias grelease="git push origin develop --tags && git checkout master && git pus
 alias gsubup="git submodule update --init --recursive"
 
 alias gpgx="export GPG_TTY=$(tty)"
+alias dkillemall='docker kill $(docker ps -qa)'
+alias dps='docker ps --format "{{.Names}} {{.Status}}"'
+alias cleanrundev="lein with-profile dev do clean, deps, run -m clojure.main dev/scripts/figwheel.clj"
+alias checkport="sudo lsof -i :"
+alias killpid="kill -9"
 
 alias grep='rg'
 alias ls='ls --color'
 alias cat='bat'
 alias bathelp='bat --plain --language=help'
-alias -g -- -h='-h 2>&1 | bat --language=help --style=plain'
-alias -g -- --help='--help 2>&1 | bat --language=help --style=plain'
 
 help() {
     "$@" --help 2>&1 | bathelp
@@ -147,4 +150,37 @@ prodVPNOTP() {
 }
 cpvpncode() {
   prodVPNOTP | pbcopy
+}
+
+
+update_tags() {
+    if [ $# -lt 3 ]; then
+        echo "Usage: update_tag_multi <service> <new_tag> <cluster1> [cluster2 ...]"
+        return 1
+    fi
+
+    local CLUSTER_CONFIGS_BASE_PATH="$HOME/peerspace/cluster-configs"
+    local service="$1"
+    local new_tag="$2"
+    shift 2
+
+    local clusters=("$@")
+
+    for cluster in "${clusters[@]}"; do
+        local config_file="${CLUSTER_CONFIGS_BASE_PATH}/configs/${cluster}/ps-services.yaml"
+
+        if [ ! -f "$config_file" ]; then
+            echo "Error: Config file not found: $config_file"
+            return 1
+        fi
+
+        sed -i '' "/- source: services\/${service}.yaml/,/special_env:/s/image_tag:.*/image_tag: ${new_tag}/" "$config_file"
+
+        if [ $? -eq 0 ]; then
+            echo "Successfully updated image_tag for $service in $cluster to $new_tag"
+        else
+            echo "Error: Failed to update image_tag"
+            return 1
+        fi
+    done
 }

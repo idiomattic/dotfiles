@@ -77,7 +77,6 @@ alias gcm='git checkout master'
 alias grelease="git push origin develop --tags && git checkout master && git push origin master && git checkout develop"
 alias gsubup="git submodule update --init --recursive"
 
-alias gpgx="export GPG_TTY=$(tty)"
 alias dkillemall='docker kill $(docker ps -qa)'
 alias dps='docker ps --format "{{.Names}} {{.Status}}"'
 alias cleanrundev="lein with-profile dev do clean, deps, run -m clojure.main dev/scripts/figwheel.clj"
@@ -177,7 +176,8 @@ update_tags() {
         sed -i '' "/- source: services\/${service}.yaml/,/special_env:/s/image_tag:.*/image_tag: ${new_tag}/" "$config_file"
 
         if [ $? -eq 0 ]; then
-            echo "Successfully updated image_tag for $service in $cluster to $new_tag"
+            echo "Changes for $service in $cluster:"
+            git diff "$config_file"
         else
             echo "Error: Failed to update image_tag"
             return 1

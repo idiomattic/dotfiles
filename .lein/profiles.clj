@@ -2,7 +2,9 @@
                   [com.github.liquidz/antq "2.8.1185"]]
         :aliases {"kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]
                   "outdated-check" ["with-profile" "antq" "run" "-m" "antq.core"]
-                  "outdated" ["with-profile" "antq" "run" "-m" "antq.core" "--upgrade" "--force"]}}
+                  "outdated" ["with-profile" "antq" "run" "-m" "antq.core" "--upgrade" "--force"]}
+        :dependencies [[org.clojars.lukaszkorecki/rumble "RELEASE"]]}
+ :repl {:dependencies [[org.clojars.lukaszkorecki/rumble "RELEASE"]]}
  :kaocha {:dependencies [[lambdaisland/kaocha "1.91.1392"]]}
  :antq {:global-vars {*warn-on-reflection* false}
         :dependencies [[com.github.liquidz/antq "RELEASE"]
@@ -12,4 +14,5 @@
                         ;; these are needed when running checks
                         ;; in repos with older dependencies
                        [org.clojure/tools.reader "1.4.2"]
-                       [org.yaml/snakeyaml "2.2"]]}}
+                       [org.yaml/snakeyaml "2.2"]]}
+ :portal {:dependencies [[djblue/portal "0.57.3"]]}}

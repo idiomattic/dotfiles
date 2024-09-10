@@ -1,7 +1,10 @@
 # For GPR access
-export GITHUB_USERNAME="idiomattic"
+export GITHUB_USERNAME="{{ op://Employee/GitHub/login }}"
 export GITHUB_TOKEN="{{ op://Employee/GitHub/token }}"
 export GITHUB_PASSWORD="{{ op://Employee/GitHub/token }}"
+# For Clojars publishing
+export CLOJARS_USERNAME="{{ op://Employee/Clojars/username }}"
+export CLOJARS_PASSWORD="{{ op://Employee/Clojars/Saved on clojars.org/Token }}"
 
 # For GH CLI
 export GH_TOKEN="{{ op://Employee/GitHub/password }}"

@@ -88,6 +88,8 @@ alias ls='ls --color'
 alias cat='bat'
 alias bathelp='bat --plain --language=help'
 
+alias nv="nvim"
+
 help() {
     "$@" --help 2>&1 | bathelp
 }

@@ -146,6 +146,17 @@ eval "$(fzf --zsh)"
 eval "$(zoxide init --cmd cd zsh)"
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
+# Add prompt command to path
+# Remove any existing prompt_engineer entries from PATH
+PATH=$(echo $PATH | tr ':' '\n' | grep -v "$HOME/prompt_engineer" | tr '\n' ':' | sed 's/:$//')
+
+# Add prompt_engineer to PATH if it's not already there
+if [[ ":$PATH:" != *":$HOME/prompt_engineer:"* ]]; then
+  export PATH="$PATH:$HOME/prompt_engineer"
+fi
+
+export PROMPTS_DIR="$HOME/prompt_engineer"
+
 prodVPNOTP() {
 	op read "op://Private/ps-prod-openvpn01 VPN credentials/one-time password?attribute=otp"
 }

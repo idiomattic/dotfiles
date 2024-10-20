@@ -76,6 +76,7 @@ alias gcd='git checkout develop'
 alias gcm='git checkout master'
 alias grelease="git push origin develop --tags && git checkout master && git push origin master && git checkout develop"
 alias gsubup="git submodule update --init --recursive"
+alias lg="lazygit"
 
 alias dkillemall='docker kill $(docker ps -qa)'
 alias dps='docker ps --format "{{.Names}} {{.Status}}"'

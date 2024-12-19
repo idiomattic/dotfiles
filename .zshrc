@@ -166,7 +166,6 @@ cpvpncode() {
   prodVPNOTP | pbcopy
 }
 
-
 update_tags() {
     if [ $# -lt 3 ]; then
         echo "Usage: update_tag_multi <service> <new_tag> <cluster1> [cluster2 ...]"
@@ -188,7 +187,11 @@ update_tags() {
             return 1
         fi
 
-        sed -i '' "/- source: services\/${service}.yaml/,/special_env:/s/image_tag:.*/image_tag: ${new_tag}/" "$config_file"
+        sed -i '' "
+          /- source: services\/${service}.yaml/,/^[[:space:]]*image_tag:/ {
+            s/^[[:space:]]*image_tag:.*/  image_tag: ${new_tag}/
+          }
+        " "$config_file"
 
         if [ $? -eq 0 ]; then
             echo "Changes for $service in $cluster:"

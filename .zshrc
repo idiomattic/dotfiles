@@ -203,4 +203,36 @@ update_tags() {
     done
 }
 
+#!/bin/bash
+
+convert_clj_to_txt() {
+    local input_dir="$1"
+    local output_dir="$2"
+
+    if [ ! -d "$input_dir" ]; then
+        echo "Error: Input directory '$input_dir' does not exist"
+        return 1
+    fi
+
+    if [ ! -d "$output_dir" ]; then
+        mkdir -p "$output_dir"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to create output directory '$output_dir'"
+            return 1
+        fi
+    fi
+
+    find "$input_dir" -type f -name "*.clj" | while read -r file; do
+        filename=$(basename "$file" .clj)
+
+        cp "$file" "$output_dir/${filename}.txt"
+
+        if [ $? -eq 0 ]; then
+            echo "Converted: $file -> $output_dir/${filename}.txt"
+        else
+            echo "Error: Failed to convert $file"
+        fi
+    done
+}
+
 . "$HOME/.local/bin/env"

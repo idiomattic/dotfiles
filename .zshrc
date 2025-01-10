@@ -108,7 +108,7 @@ decrypt_secrets() {
 
 encrypt_secrets() {
     for env in "$@"; do
-        cd "configs/$env/encrypted" && pskms -c "$env" -f service-keys.env && cd ../../..
+        cd "configs/$env/encrypted" && pskms -c "$env" -e -f service-keys.env && cd ../../..
     done
 }
 
@@ -202,3 +202,5 @@ update_tags() {
         fi
     done
 }
+
+. "$HOME/.local/bin/env"

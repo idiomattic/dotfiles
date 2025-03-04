@@ -203,8 +203,6 @@ update_tags() {
     done
 }
 
-#!/bin/bash
-
 convert_clj_to_txt() {
     local input_dir="$1"
     local output_dir="$2"
@@ -223,12 +221,28 @@ convert_clj_to_txt() {
     fi
 
     find "$input_dir" -type f -name "*.clj" | while read -r file; do
-        filename=$(basename "$file" .clj)
+        # Get the relative path from input_dir
+        relative_path="${file#$input_dir/}"
 
-        cp "$file" "$output_dir/${filename}.txt"
+        # Get directory part and filename part
+        dir_part=$(dirname "$relative_path")
+        filename=$(basename "$relative_path" .clj)
+
+        # Convert directory separators to dots
+        namespace_part="${dir_part//\//.}"
+
+        # If we're not at the root level, add a dot
+        if [ "$namespace_part" != "." ]; then
+            final_name="${namespace_part}.${filename}.txt"
+        else
+            final_name="${filename}.txt"
+        fi
+
+        # Copy the file with the new name
+        cp "$file" "$output_dir/$final_name"
 
         if [ $? -eq 0 ]; then
-            echo "Converted: $file -> $output_dir/${filename}.txt"
+            echo "Converted: $file -> $output_dir/$final_name"
         else
             echo "Error: Failed to convert $file"
         fi

@@ -86,7 +86,7 @@ alias checkport="sudo lsof -i :"
 alias killpid="kill -9"
 
 alias grep='rg'
-alias ls='ls --color'
+alias ls='ls -lh --color'
 alias cat='bat'
 alias bathelp='bat --plain --language=help'
 

@@ -250,3 +250,4 @@ convert_clj_to_txt() {
 }
 
 . "$HOME/.local/bin/env"
+eval "$(/Users/matthewlese/peerspace/dev-env/tools/bin/p init -)"

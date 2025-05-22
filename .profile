@@ -7,3 +7,11 @@ export PATH="$PATH:$HOME/.rvm/bin"
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
 . "$HOME/.local/bin/env"
+
+if [[ "${SECRETS_LOADED}" == "" ]] ; then
+  eval $(op --account=ps-team.1password.com inject -i ~/.private/1p-secrets.sh | grep -Ev '^#')
+  # configure auth for NPM
+  if [[ -n "${NPM_TOKEN}" ]] ; then
+    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >~/.npmrc
+  fi
+fi

@@ -249,5 +249,50 @@ convert_clj_to_txt() {
     done
 }
 
+convert_all_to_txt() {
+    local input_dir="$1"
+    local output_dir="$2"
+
+    if [ ! -d "$input_dir" ]; then
+        echo "Error: Input directory '$input_dir' does not exist"
+        return 1
+    fi
+
+    if [ ! -d "$output_dir" ]; then
+        mkdir -p "$output_dir"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to create output directory '$output_dir'"
+            return 1
+        fi
+    fi
+
+    find "$input_dir" -type f | while read -r file; do
+        # Get the relative path from input_dir, including original extension (e.g., "subdir/file.ext" or "file.ext")
+        local relative_path_slashes_ext="${file#$input_dir/}"
+
+        # Replace slashes with periods in the relative path to form the main part of the new filename
+        # e.g., "subdir/file.ext" becomes "subdir.file.ext"
+        local output_filename_stem_dots="${relative_path_slashes_ext//\//.}"
+
+        # Append .txt to this new main part
+        # e.g., "subdir.file.ext" becomes "subdir.file.ext.txt"
+        local final_output_filename_txt="${output_filename_stem_dots}.txt"
+
+        # The full destination path for the new file, placed directly in the output directory
+        local target_file_full_path="$output_dir/$final_output_filename_txt"
+
+        # Copy the original file to the new path
+        cp "$file" "$target_file_full_path"
+
+        if [ $? -eq 0 ]; then
+            echo "Converted: $file -> $target_file_full_path"
+        else
+            echo "Error: Failed to convert $file"
+        fi
+    done
+}
+
 . "$HOME/.local/bin/env"
+eval "$(zoxide init zsh)"
 eval "$(/Users/matthewlese/peerspace/dev-env/tools/bin/p init -)"
+eval "$(/Users/matthewlese/.local/bin/mise activate zsh)"

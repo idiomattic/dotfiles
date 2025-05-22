@@ -203,52 +203,6 @@ update_tags() {
     done
 }
 
-convert_clj_to_txt() {
-    local input_dir="$1"
-    local output_dir="$2"
-
-    if [ ! -d "$input_dir" ]; then
-        echo "Error: Input directory '$input_dir' does not exist"
-        return 1
-    fi
-
-    if [ ! -d "$output_dir" ]; then
-        mkdir -p "$output_dir"
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to create output directory '$output_dir'"
-            return 1
-        fi
-    fi
-
-    find "$input_dir" -type f -name "*.clj" | while read -r file; do
-        # Get the relative path from input_dir
-        relative_path="${file#$input_dir/}"
-
-        # Get directory part and filename part
-        dir_part=$(dirname "$relative_path")
-        filename=$(basename "$relative_path" .clj)
-
-        # Convert directory separators to dots
-        namespace_part="${dir_part//\//.}"
-
-        # If we're not at the root level, add a dot
-        if [ "$namespace_part" != "." ]; then
-            final_name="${namespace_part}.${filename}.txt"
-        else
-            final_name="${filename}.txt"
-        fi
-
-        # Copy the file with the new name
-        cp "$file" "$output_dir/$final_name"
-
-        if [ $? -eq 0 ]; then
-            echo "Converted: $file -> $output_dir/$final_name"
-        else
-            echo "Error: Failed to convert $file"
-        fi
-    done
-}
-
 convert_all_to_txt() {
     local input_dir="$1"
     local output_dir="$2"

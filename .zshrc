@@ -159,53 +159,86 @@ fi
 
 export PROMPTS_DIR="$HOME/prompt_engineer"
 
-prodVPNOTP() {
-	op read "op://Private/ps-prod-openvpn01 VPN credentials/one-time password?attribute=otp"
-}
-cpvpncode() {
-  prodVPNOTP | pbcopy
-}
+convert_to_txt() {
+    local input_dir=""
+    local output_dir=""
+    local extension_filter=""
+    local show_help=false
 
-update_tags() {
-    if [ $# -lt 3 ]; then
-        echo "Usage: update_tag_multi <service> <new_tag> <cluster1> [cluster2 ...]"
+    show_usage() {
+        echo "Usage: convert_all_to_txt [OPTIONS]"
+        echo ""
+        echo "Convert files to .txt extension while respecting git ignore rules."
+        echo ""
+        echo "Options:"
+        echo "  -i, --input PATH      Input directory (required)"
+        echo "  -o, --output PATH     Output directory (required)"
+        echo "  -e, --extension EXT   Filter by file extension (e.g., 'py', '.js')"
+        echo "  -h, --help           Show this help message"
+        echo ""
+        echo "Examples:"
+        echo "  convert_all_to_txt -i /path/to/source -o /path/to/dest"
+        echo "  convert_all_to_txt --input ./src --output ./txt --extension py"
+        echo "  convert_all_to_txt -i . -o ../output -e .js"
+    }
+
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -i|--input)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    input_dir="$2"
+                    shift 2
+                else
+                    echo "Error: --input requires a path argument"
+                    return 1
+                fi
+                ;;
+            -o|--output)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    output_dir="$2"
+                    shift 2
+                else
+                    echo "Error: --output requires a path argument"
+                    return 1
+                fi
+                ;;
+            -e|--extension)
+                if [[ -n "$2" && ! "$2" =~ ^- ]]; then
+                    extension_filter="$2"
+                    shift 2
+                else
+                    echo "Error: --extension requires an extension argument"
+                    return 1
+                fi
+                ;;
+            -h|--help)
+                show_help=true
+                shift
+                ;;
+            *)
+                echo "Error: Unknown option: $1"
+                echo "Use -h or --help for usage information"
+                return 1
+                ;;
+        esac
+    done
+
+    if [[ "$show_help" == true ]]; then
+        show_usage
+        return 0
+    fi
+
+    if [[ -z "$input_dir" ]]; then
+        echo "Error: Input directory is required"
+        echo "Use -h or --help for usage information"
         return 1
     fi
 
-    local CLUSTER_CONFIGS_BASE_PATH="$HOME/peerspace/cluster-configs"
-    local service="$1"
-    local new_tag="$2"
-    shift 2
-
-    local clusters=("$@")
-
-    for cluster in "${clusters[@]}"; do
-        local config_file="${CLUSTER_CONFIGS_BASE_PATH}/configs/${cluster}/ps-services.yaml"
-
-        if [ ! -f "$config_file" ]; then
-            echo "Error: Config file not found: $config_file"
-            return 1
-        fi
-
-        sed -i '' "
-          /- source: services\/${service}.yaml/,/^[[:space:]]*image_tag:/ {
-            s/^[[:space:]]*image_tag:.*/  image_tag: ${new_tag}/
-          }
-        " "$config_file"
-
-        if [ $? -eq 0 ]; then
-            echo "Changes for $service in $cluster:"
-            git diff "$config_file"
-        else
-            echo "Error: Failed to update image_tag"
-            return 1
-        fi
-    done
-}
-
-convert_all_to_txt() {
-    local input_dir="$1"
-    local output_dir="$2"
+    if [[ -z "$output_dir" ]]; then
+        echo "Error: Output directory is required"
+        echo "Use -h or --help for usage information"
+        return 1
+    fi
 
     if [ ! -d "$input_dir" ]; then
         echo "Error: Input directory '$input_dir' does not exist"
@@ -220,6 +253,20 @@ convert_all_to_txt() {
         fi
     fi
 
+    if [ -n "$extension_filter" ]; then
+        extension_filter="${extension_filter#.}"
+        extension_filter=".$extension_filter"
+        echo "Filtering for files with extension: $extension_filter"
+    fi
+
+    matches_extension() {
+        local file="$1"
+        if [ -z "$extension_filter" ]; then
+            return 0
+        fi
+        [[ "$file" == *"$extension_filter" ]]
+    }
+
     local original_pwd="$(pwd)"
     cd "$input_dir" || return 1
 
@@ -227,6 +274,11 @@ convert_all_to_txt() {
         echo "Note: Not in a git repository or git not available, processing all files"
         find . -type f | while read -r file; do
             file="${file#./}"
+
+            if ! matches_extension "$file"; then
+                continue
+            fi
+
             local full_file_path="$input_dir/$file"
             local output_filename_stem_dots="${file//\//.}"
             local final_output_filename_txt="${output_filename_stem_dots}.txt"
@@ -241,7 +293,7 @@ convert_all_to_txt() {
         done
     else
         git ls-files --cached --others --exclude-standard | while read -r file; do
-            if [ -f "$file" ]; then
+            if [ -f "$file" ] && matches_extension "$file"; then
                 local full_file_path="$input_dir/$file"
                 local output_filename_stem_dots="${file//\//.}"
                 local final_output_filename_txt="${output_filename_stem_dots}.txt"

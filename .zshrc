@@ -266,30 +266,44 @@ convert_all_to_txt() {
         fi
     fi
 
-    find "$input_dir" -type f | while read -r file; do
-        # Get the relative path from input_dir, including original extension (e.g., "subdir/file.ext" or "file.ext")
-        local relative_path_slashes_ext="${file#$input_dir/}"
+    local original_pwd="$(pwd)"
+    cd "$input_dir" || return 1
 
-        # Replace slashes with periods in the relative path to form the main part of the new filename
-        # e.g., "subdir/file.ext" becomes "subdir.file.ext"
-        local output_filename_stem_dots="${relative_path_slashes_ext//\//.}"
+    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --git-dir >/dev/null 2>&1; then
+        echo "Note: Not in a git repository or git not available, processing all files"
+        find . -type f | while read -r file; do
+            file="${file#./}"
+            local full_file_path="$input_dir/$file"
+            local output_filename_stem_dots="${file//\//.}"
+            local final_output_filename_txt="${output_filename_stem_dots}.txt"
+            local target_file_full_path="$output_dir/$final_output_filename_txt"
 
-        # Append .txt to this new main part
-        # e.g., "subdir.file.ext" becomes "subdir.file.ext.txt"
-        local final_output_filename_txt="${output_filename_stem_dots}.txt"
+            cp "$full_file_path" "$target_file_full_path"
+            if [ $? -eq 0 ]; then
+                echo "Converted: $file -> $target_file_full_path"
+            else
+                echo "Error: Failed to convert $file"
+            fi
+        done
+    else
+        git ls-files --cached --others --exclude-standard | while read -r file; do
+            if [ -f "$file" ]; then
+                local full_file_path="$input_dir/$file"
+                local output_filename_stem_dots="${file//\//.}"
+                local final_output_filename_txt="${output_filename_stem_dots}.txt"
+                local target_file_full_path="$output_dir/$final_output_filename_txt"
 
-        # The full destination path for the new file, placed directly in the output directory
-        local target_file_full_path="$output_dir/$final_output_filename_txt"
+                cp "$full_file_path" "$target_file_full_path"
+                if [ $? -eq 0 ]; then
+                    echo "Converted: $file -> $target_file_full_path"
+                else
+                    echo "Error: Failed to convert $file"
+                fi
+            fi
+        done
+    fi
 
-        # Copy the original file to the new path
-        cp "$file" "$target_file_full_path"
-
-        if [ $? -eq 0 ]; then
-            echo "Converted: $file -> $target_file_full_path"
-        else
-            echo "Error: Failed to convert $file"
-        fi
-    done
+    cd "$original_pwd"
 }
 
 . "$HOME/.local/bin/env"

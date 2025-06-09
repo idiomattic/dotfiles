@@ -100,18 +100,6 @@ urldecode() {
   echo -n $1 | python3 -c "import sys; from urllib.parse import unquote; print(unquote(sys.stdin.read()));"
 }
 
-decrypt_secrets() {
-    for env in "$@"; do
-        cd "configs/$env/encrypted" && pskms -c "$env" -f service-keys.env.encrypted && cd ../../..
-    done
-}
-
-encrypt_secrets() {
-    for env in "$@"; do
-        cd "configs/$env/encrypted" && pskms -c "$env" -e -f service-keys.env && cd ../../..
-    done
-}
-
 gitbranchname() {
   git branch --show-current | tr -d "\n"
 }

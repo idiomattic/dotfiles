@@ -10,7 +10,7 @@ export CLOJARS_PASSWORD="{{ op://Employee/Clojars/Saved on clojars.org/Token }}"
 export GH_TOKEN="{{ op://Employee/GitHub/password }}"
 
 # NPM
-export NPM_TOKEN="{{ op://Employee/5wwxlemqpc45d5xc3uppztms7y/password }}"
+export NPM_TOKEN="{{ op://Employee/ra3wdjjwgsiarbawqxq7be3zam/password }}"
 
 # Misc secrets
 export SEARCH_VIS_API_KEY_PROD="{{ op://Employee/SEARCH_VIS_API_KEY_PROD/password }}"
@@ -22,6 +22,3 @@ export SEARCH_METRICS_BY_LISTING_KEYWORD="{{ op://Employee/SEARCH_METRICS_BY_LIS
 export KEYWORD_TAXONOMY="{{ op://Employee/KEYWORD_TAXONOMY/URL }}"
 export LISTING_METRICS="{{ op://Employee/LISTING_METRICS/URL }}"
 export COHERE_API_KEY="{{ op://Employee/COHERE_API_KEY/credential }}"
-
-# Control var
-export SECRETS_LOADED=true

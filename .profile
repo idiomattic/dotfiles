@@ -1,4 +1,3 @@
-
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
 
@@ -10,15 +9,12 @@ export PATH="$PATH:$HOME/.rvm/bin"
 
 # Load secrets from 1Password
 if [[ "${SECRETS_LOADED}" == "" ]] ; then
-  eval $(op --account=ps-team.1password.com inject -i ~/.private/1p-secrets.sh | grep -Ev '^#')
-  # configure auth for legacy NPM registry
-  if [[ -n "${NPM_TOKEN}" ]] ; then
-    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-  fi
+  eval $(op --account=ps-team.1password.com inject -i ~/.private/1p-secrets.sh | /usr/bin/grep -E -v '^#')
+  export SECRETS_LOADED=true
+fi
 
-  # configure auth for NPM hosted at Github Package Registry
-  if [[ -n "${GITHUB_TOKEN}}" ]] ; then
-	  echo "@peerspace:registry=https://npm.pkg.github.com" >> ~/.npmrc
-    echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
-  fi
+# configure auth for NPM hosted at Github Package Registry
+if [[ -n "${GITHUB_TOKEN}" ]] ; then
+  echo "@peerspace:registry=https://npm.pkg.github.com" > ~/.npmrc
+  echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
 fi

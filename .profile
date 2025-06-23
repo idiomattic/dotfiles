@@ -21,8 +21,4 @@ if [[ "${SECRETS_LOADED}" == "" ]] ; then
   export SECRETS_LOADED=true
 fi
 
-# configure auth for NPM hosted at Github Package Registry
-if [[ -n "${GITHUB_TOKEN}" ]] ; then
-  echo "@peerspace:registry=https://npm.pkg.github.com" > ~/.npmrc
-  echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> ~/.npmrc
-fi
+. "$HOME/.atuin/bin/env"

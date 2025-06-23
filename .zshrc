@@ -307,3 +307,7 @@ source ~/.profile
 eval "$(zoxide init zsh)"
 eval "$(/Users/matthewlese/peerspace/dev-env/tools/bin/p init -)"
 eval "$(/Users/matthewlese/.local/bin/mise activate zsh)"
+
+. "$HOME/.atuin/bin/env"
+
+eval "$(atuin init zsh)"

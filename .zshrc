@@ -300,6 +300,9 @@ convert_to_txt() {
     cd "$original_pwd"
 }
 
+# Source profile for secrets and environment setup
+source ~/.profile
+
 . "$HOME/.local/bin/env"
 eval "$(zoxide init zsh)"
 eval "$(/Users/matthewlese/peerspace/dev-env/tools/bin/p init -)"

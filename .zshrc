@@ -154,7 +154,7 @@ source ~/.profile
 
 . "$HOME/.local/bin/env"
 eval "$(zoxide init zsh)"
-eval "$(/Users/matthewlese/peerspace/dev-env/tools/bin/p init -)"
+source /Users/matthewlese/peerspace/dev-env/setup/init.sh
 eval "$(/Users/matthewlese/.local/bin/mise activate zsh)"
 
 . "$HOME/.atuin/bin/env"

@@ -7,7 +7,7 @@ export CLOJARS_USERNAME="{{ op://Employee/Clojars/username }}"
 export CLOJARS_PASSWORD="{{ op://Employee/Clojars/Saved on clojars.org/Token }}"
 
 # For GH CLI
-export GH_TOKEN="{{ op://Employee/GitHub/password }}"
+export GH_TOKEN="{{ op://Employee/GitHub/token }}"
 
 # NPM
 export NPM_TOKEN="{{ op://Employee/ra3wdjjwgsiarbawqxq7be3zam/password }}"

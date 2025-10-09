@@ -21,7 +21,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 # See: https://nikitabobko.github.io/AeroSpace/guide#layouts
 # The 'accordion-padding' specifies the size of accordion padding
 # You can set 0 to disable the padding feature
-accordion-padding = 30
+accordion-padding = 80
 
 # Possible values: tiles|accordion
 default-root-container-layout = 'tiles'
@@ -57,8 +57,8 @@ automatically-unhide-macos-hidden-apps = false
 #                 See:
 #                 https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
-    inner.horizontal = 8
-    inner.vertical =   8
+    inner.horizontal = 16
+    inner.vertical =   16
     outer.left =       4
     outer.bottom =     4
     outer.top =        4
@@ -213,10 +213,13 @@ automatically-unhide-macos-hidden-apps = false
 # workaround for Ghostty tabs which are treated as separate windows
 [[on-window-detected]]
 if.app-id="com.mitchellh.ghostty"
-run= [
-  "layout tiling",
-]
+run = "layout tiling"
+
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'finder'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Slack'
 run = 'layout floating'

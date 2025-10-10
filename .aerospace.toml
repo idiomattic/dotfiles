@@ -212,14 +212,24 @@ automatically-unhide-macos-hidden-apps = false
 
 # workaround for Ghostty tabs which are treated as separate windows
 [[on-window-detected]]
-if.app-id="com.mitchellh.ghostty"
-run = "layout tiling"
+if.app-id='com.mitchellh.ghostty'
+run = [
+  'layout tiling',
+  'move-node-to-workspace T'
+]
 
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'finder'
+if.app-name-regex-substring = 'Finder'
 run = 'layout floating'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Slack'
-run = 'layout floating'
+run = [
+  'layout floating',
+  'move-node-to-workspace S'
+]
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'zoom'
+run = 'move-node-to-workspace Z'

@@ -1,9 +1,65 @@
-[git_branch]
-symbol = '🌱 '
-truncation_length = 4
-truncation_symbol = ''
+# Left prompt: directory + git branch (on first line), character (on second line)
+format = """
+$directory\
+$git_branch\
+$line_break\
+$character"""
 
-[git_status]
-ahead = '⇡${count}'
-diverged = '⇡${ahead_count}⇣${behind_count}'
-behind = '⇣${count}'
+# Right prompt: language/environment info
+right_format = """
+$java\
+$nodejs\
+$python\
+$rust\
+$golang"""
+
+# Directory - show only current directory name (relative to ~)
+[directory]
+truncation_length = 1
+truncate_to_repo = false
+format = "[$path]($style) "
+style = "bold cyan"
+
+# Git branch
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = " "
+style = "bold purple"
+
+# Java
+[java]
+symbol = "☕️ "
+format = "[$symbol$version]($style) "
+detect_extensions = ["java", "class", "jar", "gradle", "clj", "cljc"]
+
+# Node.js / JavaScript
+[nodejs]
+symbol = "⬢ "
+format = "[$symbol$version]($style) "
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+
+# Python
+[python]
+symbol = "🐍 "
+format = "[$symbol$version]($style) "
+detect_extensions = ["py"]
+detect_files = [".python-version", "Pipfile", "pyproject.toml", "requirements.txt"]
+
+# Rust
+[rust]
+symbol = "🦀 "
+format = "[$symbol$version]($style) "
+detect_extensions = ["rs"]
+detect_files = ["Cargo.toml"]
+
+# Go
+[golang]
+symbol = "🐹 "
+format = "[$symbol$version]($style) "
+detect_extensions = ["go"]
+detect_files = ["go.mod", "go.sum"]
+
+# Prompt character
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"

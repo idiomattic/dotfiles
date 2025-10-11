@@ -3,6 +3,7 @@
 input_dir=""
 output_dir=""
 extension_filter=""
+include_all=false
 show_help=false
 
 show_usage() {
@@ -14,12 +15,13 @@ show_usage() {
     echo "  -i, --input PATH      Input directory (required)"
     echo "  -o, --output PATH     Output directory (required)"
     echo "  -e, --extension EXT   Filter by file extension (e.g., 'py', '.js')"
+    echo "  -a, --all            Include hidden files and files ignored by git"
     echo "  -h, --help           Show this help message"
     echo ""
     echo "Examples:"
     echo "  p export-for-claude-project -i /path/to/source -o /path/to/dest"
     echo "  p export-for-claude-project --input ./src --output ./txt --extension py"
-    echo "  p export-for-claude-project -i . -o ../output -e .js"
+    echo "  p export-for-claude-project -i . -o ../output -e .js -a"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -50,6 +52,10 @@ while [[ $# -gt 0 ]]; do
                 echo "Error: --extension requires an extension argument"
                 exit 1
             fi
+            ;;
+        -a|--all)
+            include_all=true
+            shift
             ;;
         -h|--help)
             show_help=true
@@ -105,6 +111,10 @@ if [ -n "$extension_filter" ]; then
     echo "Filtering for files with extension: $extension_filter"
 fi
 
+if [ "$include_all" = true ]; then
+    echo "Including all files (hidden files and git-ignored files)"
+fi
+
 matches_extension() {
     local file="$1"
     if [ -z "$extension_filter" ]; then
@@ -138,21 +148,42 @@ if ! command -v git >/dev/null 2>&1 || ! git rev-parse --git-dir >/dev/null 2>&1
         fi
     done
 else
-    git ls-files --cached --others --exclude-standard | while read -r file; do
-        if [ -f "$file" ] && matches_extension "$file"; then
-            full_file_path="$(pwd)/$file"
-            output_filename_stem_dots="${file//\//.}"
-            final_output_filename_txt="${output_filename_stem_dots}.txt"
-            target_file_full_path="$output_dir/$final_output_filename_txt"
+    # In a git repository
+    if [ "$include_all" = true ]; then
+        # Include all files, even those ignored by git
+        git ls-files --cached --others | while read -r file; do
+            if [ -f "$file" ] && matches_extension "$file"; then
+                full_file_path="$(pwd)/$file"
+                output_filename_stem_dots="${file//\//.}"
+                final_output_filename_txt="${output_filename_stem_dots}.txt"
+                target_file_full_path="$output_dir/$final_output_filename_txt"
 
-            cp "$full_file_path" "$target_file_full_path"
-            if [ $? -eq 0 ]; then
-                echo "Converted: $file -> $target_file_full_path"
-            else
-                echo "Error: Failed to convert $file"
+                cp "$full_file_path" "$target_file_full_path"
+                if [ $? -eq 0 ]; then
+                    echo "Converted: $file -> $target_file_full_path"
+                else
+                    echo "Error: Failed to convert $file"
+                fi
             fi
-        fi
-    done
+        done
+    else
+        # Respect git ignore rules (default behavior)
+        git ls-files --cached --others --exclude-standard | while read -r file; do
+            if [ -f "$file" ] && matches_extension "$file"; then
+                full_file_path="$(pwd)/$file"
+                output_filename_stem_dots="${file//\//.}"
+                final_output_filename_txt="${output_filename_stem_dots}.txt"
+                target_file_full_path="$output_dir/$final_output_filename_txt"
+
+                cp "$full_file_path" "$target_file_full_path"
+                if [ $? -eq 0 ]; then
+                    echo "Converted: $file -> $target_file_full_path"
+                else
+                    echo "Error: Failed to convert $file"
+                fi
+            fi
+        done
+    fi
 fi
 
 cd "$original_pwd"

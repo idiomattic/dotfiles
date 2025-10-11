@@ -107,7 +107,10 @@ alias nv="nvim"
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # Development environment manager (mise/rtx)
-eval "$(/Users/matthewlese/.local/bin/mise activate zsh)"
+# Only activate here if we're not loading the work init script
+if [ ! -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
+  eval "$(/Users/matthewlese/.local/bin/mise activate zsh)"
+fi
 
 # FZF fuzzy finder
 eval "$(fzf --zsh)"

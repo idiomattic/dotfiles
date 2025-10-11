@@ -13,6 +13,8 @@ $python\
 $rust\
 $golang"""
 
+add_newline = false
+
 # Directory - show only current directory name (relative to ~)
 [directory]
 truncation_length = 1

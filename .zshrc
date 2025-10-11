@@ -137,5 +137,20 @@ fi
 # ============================================
 eval "$(starship init zsh)"
 
+FIRST_PROMPT=1
+
+precmd() {
+    if [ -z "$FIRST_PROMPT" ]; then
+        echo
+    fi
+    unset FIRST_PROMPT
+}
+
+preexec() {
+    if [[ "$1" == "clear" ]] || [[ "$1" == "clear "* ]]; then
+        FIRST_PROMPT=1
+    fi
+}
+
 # Uncomment to enable profiling - for debugging which parts of profile loading are taking the longest
 # zprof

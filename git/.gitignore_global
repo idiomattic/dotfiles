@@ -8,3 +8,9 @@
 .clj-kondo/.cache/
 .lsp/
 .vscode/
+
+# Private directory - exclude generated files but track templates
+private/.private/*.env
+private/.private/secrets.*
+private/.private/.npmrc
+private/.private/gpr-npmrc

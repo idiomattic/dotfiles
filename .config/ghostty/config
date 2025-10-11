@@ -1,0 +1,3 @@
+macos-titlebar-style = tabs
+keybind = alt+super+left=previous_tab
+keybind = alt+super+right=next_tab

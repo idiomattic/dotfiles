@@ -1,3 +1,6 @@
+# Uncomment to enable profiling - for debugging which parts of profile loading are taking the longest
+# zmodload zsh/zprof
+
 # ============================================
 # ENVIRONMENT VARIABLES
 # ============================================
@@ -130,3 +133,6 @@ fi
 # PROMPT (Must be LAST)
 # ============================================
 eval "$(starship init zsh)"
+
+# Uncomment to enable profiling - for debugging which parts of profile loading are taking the longest
+# zprof

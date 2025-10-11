@@ -87,8 +87,11 @@ export PATH="$HOME/.private/bin:$PATH"
 
 . "$HOME/.local/bin/env"
 eval "$(zoxide init zsh)"
-source /Users/matthewlese/peerspace/dev-env/setup/init.sh
 eval "$(/Users/matthewlese/.local/bin/mise activate zsh)"
+
+if [ -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
+  source /Users/matthewlese/peerspace/dev-env/setup/init.sh
+fi
 
 . "$HOME/.atuin/bin/env"
 eval "$(atuin init zsh)"

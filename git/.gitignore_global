@@ -5,3 +5,6 @@
 .clj-kondo
 .calva
 .vscode
+.clj-kondo/.cache/
+.lsp/
+.vscode/

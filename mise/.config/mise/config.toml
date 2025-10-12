@@ -5,3 +5,4 @@ idiomatic_version_file = true
 java = "temurin-11"
 node = "24.7.0"
 lein = "2.9.9"
+rust = "latest"

@@ -109,7 +109,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 # Development environment manager (mise/rtx)
 # Only activate here if we're not loading the work init script
 if [ ! -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
-  eval "$(/Users/matthewlese/.local/bin/mise activate zsh)"
+  eval "$(mise activate zsh)"
 fi
 
 # FZF fuzzy finder

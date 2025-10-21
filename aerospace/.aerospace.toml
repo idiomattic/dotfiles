@@ -226,7 +226,6 @@ run = 'layout floating'
 [[on-window-detected]]
 if.app-name-regex-substring = 'Slack'
 run = [
-  'layout floating',
   'move-node-to-workspace S'
 ]
 

@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+
+# code_in - Open a code repository in a specific aerospace workspace
+# Usage: code_in [path] [-w|--workspace WORKSPACE] [-d|--debug]
+
+set -e
+
+REPO_PATH="."
+WORKSPACE=""
+EDITOR_CMD="code"
+DEBUG=${DEBUG:-0}
+
+debug_log() {
+    if [[ "$DEBUG" -eq 1 ]]; then
+        echo "[DEBUG] $1" >&2
+    fi
+}
+
+info_log() {
+    echo "$1"
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -w|--workspace)
+            WORKSPACE="$2"
+            shift 2
+            ;;
+        -e|--editor)
+            EDITOR_CMD="$2"
+            shift 2
+            ;;
+        -d|--debug)
+            DEBUG=1
+            shift
+            ;;
+        -h|--help)
+            echo "Usage: code_in [path] [-w|--workspace WORKSPACE] [-e|--editor EDITOR] [-d|--debug]"
+            echo ""
+            echo "Open a code repository in a specific aerospace workspace"
+            echo ""
+            echo "Arguments:"
+            echo "  path              Path to repository (default: current directory)"
+            echo "  -w, --workspace   Aerospace workspace ID to move window to"
+            echo "  -e, --editor      Editor command to use (default: code)"
+            echo "  -d, --debug       Enable debug output"
+            echo "  -h, --help        Show this help message"
+            echo ""
+            echo "Environment variables:"
+            echo "  DEBUG=1           Enable debug output"
+            exit 0
+            ;;
+        *)
+            if [[ ! "$1" =~ ^- ]]; then
+                REPO_PATH="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$WORKSPACE" ]]; then
+    echo "Error: Workspace not specified. Use -w or --workspace to specify a workspace ID."
+    exit 1
+fi
+
+ABSOLUTE_PATH=$(cd "$REPO_PATH" 2>/dev/null && pwd || realpath "$REPO_PATH" 2>/dev/null)
+if [[ -z "$ABSOLUTE_PATH" ]]; then
+    echo "Error: Invalid path: $REPO_PATH"
+    exit 1
+fi
+
+REPO_NAME=$(basename "$ABSOLUTE_PATH")
+
+debug_log "Repository: $REPO_NAME"
+debug_log "Absolute path: $ABSOLUTE_PATH"
+debug_log "Target workspace: $WORKSPACE"
+
+CURRENT_WINDOWS=$(aerospace list-windows --all)
+EXISTING_WINDOW_ID=""
+EXISTING_WORKSPACE=""
+
+debug_log "Checking for existing windows..."
+
+while IFS= read -r line; do
+    WINDOW_ID=$(echo "$line" | awk '{print $1}')
+    WINDOW_INFO=$(echo "$line" | cut -d'|' -f3-)
+
+    if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
+        EXISTING_WINDOW_ID=$WINDOW_ID
+        debug_log "Found existing window: ID=$WINDOW_ID, Info=$WINDOW_INFO"
+
+        break
+    fi
+done <<< "$CURRENT_WINDOWS"
+
+if [[ -n "$EXISTING_WINDOW_ID" ]]; then
+    info_log "Repository $REPO_NAME is already open (window ID: $EXISTING_WINDOW_ID)"
+
+    if [[ "$WORKSPACE" != "" ]]; then
+        debug_log "Moving existing window to workspace $WORKSPACE"
+        aerospace move-node-to-workspace --window-id "$EXISTING_WINDOW_ID" "$WORKSPACE"
+        info_log "Moved existing window to workspace $WORKSPACE"
+    fi
+
+    aerospace workspace "$WORKSPACE"
+    info_log "Navigated to workspace $WORKSPACE"
+    exit 0
+fi
+
+debug_log "No existing window found, opening new instance..."
+
+BEFORE_WINDOWS=$(aerospace list-windows --all | awk '{print $1}')
+debug_log "Captured window IDs before opening editor"
+
+debug_log "Executing: $EDITOR_CMD \"$ABSOLUTE_PATH\""
+$EDITOR_CMD "$ABSOLUTE_PATH" &
+
+MAX_ATTEMPTS=30  # 3 seconds timeout (30 * 0.1s)
+ATTEMPT=0
+NEW_WINDOW_ID=""
+
+debug_log "Waiting for new window to appear..."
+
+while [[ $ATTEMPT -lt $MAX_ATTEMPTS ]]; do
+    sleep 0.1
+
+    CURRENT_WINDOWS=$(aerospace list-windows --all)
+
+    while IFS= read -r line; do
+        WINDOW_ID=$(echo "$line" | awk '{print $1}')
+        WINDOW_INFO=$(echo "$line" | cut -d'|' -f3-)
+
+        # Check if this window ID is new
+        if ! echo "$BEFORE_WINDOWS" | grep -q "^$WINDOW_ID$"; then
+            debug_log "Found new window ID: $WINDOW_ID"
+            # Check if the window info contains the repo name
+            if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
+                debug_log "Window matches repository: $WINDOW_INFO"
+                NEW_WINDOW_ID=$WINDOW_ID
+                break 2
+            fi
+        fi
+    done <<< "$CURRENT_WINDOWS"
+
+    ATTEMPT=$((ATTEMPT + 1))
+    debug_log "Attempt $ATTEMPT of $MAX_ATTEMPTS"
+done
+
+if [[ -z "$NEW_WINDOW_ID" ]]; then
+    debug_log "Rechecking for existing windows after timeout..."
+    CURRENT_WINDOWS=$(aerospace list-windows --all)
+
+    while IFS= read -r line; do
+        WINDOW_INFO=$(echo "$line" | cut -d'|' -f3-)
+        if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
+            info_log "Editor focused existing window for $REPO_NAME instead of creating new one"
+            info_log "Try closing the existing window first if you want to open it in a different workspace"
+            exit 1
+        fi
+    done <<< "$CURRENT_WINDOWS"
+
+    echo "Warning: Could not find window for $REPO_NAME after opening"
+    echo "The editor may have failed to open, or the window title doesn't contain the repository name"
+    exit 1
+fi
+
+debug_log "Found new window ID: $NEW_WINDOW_ID"
+
+debug_log "Moving window $NEW_WINDOW_ID to workspace $WORKSPACE"
+aerospace move-node-to-workspace --window-id "$NEW_WINDOW_ID" "$WORKSPACE"
+
+aerospace workspace "$WORKSPACE"
+
+debug_log "Successfully opened $REPO_NAME in workspace $WORKSPACE"

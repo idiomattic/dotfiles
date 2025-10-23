@@ -231,4 +231,7 @@ run = [
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'zoom'
-run = 'move-node-to-workspace Z'
+run = [
+  'layout floating',
+  'move-node-to-workspace Z'
+]

@@ -1,0 +1,227 @@
+#!/usr/bin/env bash
+
+set -e
+
+REPO_PATH="."
+WORKSPACE=""
+EDITOR_CMD="code"
+DEBUG=${DEBUG:-0}
+
+debug_log() {
+    if [[ "$DEBUG" -eq 1 ]]; then
+        echo "[DEBUG] $1" >&2
+    fi
+}
+
+info_log() {
+    echo "$1"
+}
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -w|--workspace)
+            WORKSPACE="$2"
+            shift 2
+            ;;
+        -e|--editor)
+            EDITOR_CMD="$2"
+            shift 2
+            ;;
+        -d|--debug)
+            DEBUG=1
+            shift
+            ;;
+        -h|--help)
+            echo "Usage: work_in [path] [-w|--workspace WORKSPACE] [-e|--editor EDITOR] [-d|--debug]"
+            echo ""
+            echo "Open a code repository and terminal in a specific aerospace workspace"
+            echo ""
+            echo "Arguments:"
+            echo "  path              Path to repository (default: current directory)"
+            echo "  -w, --workspace   Aerospace workspace ID to move windows to"
+            echo "  -e, --editor      Editor command to use (default: code)"
+            echo "  -d, --debug       Enable debug output"
+            echo "  -h, --help        Show this help message"
+            exit 0
+            ;;
+        *)
+            if [[ ! "$1" =~ ^- ]]; then
+                REPO_PATH="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$WORKSPACE" ]]; then
+    echo "Error: Workspace not specified. Use -w or --workspace to specify a workspace ID."
+    exit 1
+fi
+
+ABSOLUTE_PATH=$(cd "$REPO_PATH" 2>/dev/null && pwd || realpath "$REPO_PATH" 2>/dev/null)
+if [[ -z "$ABSOLUTE_PATH" ]]; then
+    echo "Error: Invalid path: $REPO_PATH"
+    exit 1
+fi
+
+REPO_NAME=$(basename "$ABSOLUTE_PATH")
+
+debug_log "Repository: $REPO_NAME"
+debug_log "Absolute path: $ABSOLUTE_PATH"
+debug_log "Target workspace: $WORKSPACE"
+
+find_editor_window_by_repo() {
+    local repo_name="$1"
+    local found_id=""
+
+    while IFS= read -r line; do
+        local window_id=$(echo "$line" | awk '{print $1}')
+        local window_app=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+        local window_info=$(echo "$line" | cut -d'|' -f3-)
+
+        # Check for common code editors
+        if [[ "$window_app" == "Code" ]] || [[ "$window_app" == "Cursor" ]] ; then
+            if echo "$window_info" | grep -q "$repo_name"; then
+                debug_log "Found existing $window_app window for $repo_name: ID=$window_id"
+                found_id="$window_id"
+                break
+            fi
+        fi
+    done < <(aerospace list-windows --all)
+
+    echo "$found_id"
+}
+
+wait_for_new_editor_window() {
+    local before_windows="$1"
+    local repo_name="$2"
+    local max_attempts=30
+    local attempt=0
+    local found_id=""
+
+    while [[ $attempt -lt $max_attempts ]]; do
+        sleep 0.1
+
+        while IFS= read -r line; do
+            local window_id=$(echo "$line" | awk '{print $1}')
+            local window_app=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+            local window_info=$(echo "$line" | cut -d'|' -f3-)
+
+            if ! echo "$before_windows" | grep -q "^$window_id$"; then
+                # Check for common code editors
+                if [[ "$window_app" == "Code" ]] || [[ "$window_app" == "Cursor" ]] ; then
+                    if echo "$window_info" | grep -q "$repo_name"; then
+                        debug_log "Found new $window_app window: ID=$window_id, Info=$window_info"
+                        found_id="$window_id"
+                        break 2
+                    fi
+                fi
+            fi
+        done < <(aerospace list-windows --all)
+
+        attempt=$((attempt + 1))
+        debug_log "Waiting for editor window... attempt $attempt of $max_attempts"
+    done
+
+    echo "$found_id"
+}
+
+wait_for_new_terminal_window() {
+    local before_windows="$1"
+    local max_attempts=30
+    local attempt=0
+    local found_id=""
+
+    while [[ $attempt -lt $max_attempts ]]; do
+        sleep 0.1
+
+        while IFS= read -r line; do
+            local window_id=$(echo "$line" | awk '{print $1}')
+            local window_app=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+
+            if ! echo "$before_windows" | grep -q "^$window_id$"; then
+                if [[ "$window_app" == "Ghostty" ]]; then
+                    debug_log "Found new Ghostty window: ID=$window_id"
+                    found_id="$window_id"
+                    break 2
+                fi
+            fi
+        done < <(aerospace list-windows --all)
+
+        attempt=$((attempt + 1))
+        debug_log "Waiting for Ghostty window... attempt $attempt of $max_attempts"
+    done
+
+    echo "$found_id"
+}
+
+# Handle editor window first (but don't move it yet)
+debug_log "Checking for existing editor window..."
+EXISTING_EDITOR_ID=$(find_editor_window_by_repo "$REPO_NAME")
+
+if [[ -n "$EXISTING_EDITOR_ID" ]]; then
+    info_log "Editor window for $REPO_NAME already open (ID: $EXISTING_EDITOR_ID)"
+    EDITOR_WINDOW_ID="$EXISTING_EDITOR_ID"
+else
+    debug_log "Opening new editor window with command: $EDITOR_CMD"
+    BEFORE_WINDOWS=$(aerospace list-windows --all | awk '{print $1}')
+
+    $EDITOR_CMD "$ABSOLUTE_PATH" &
+
+    EDITOR_WINDOW_ID=$(wait_for_new_editor_window "$BEFORE_WINDOWS" "$REPO_NAME")
+
+    if [[ -z "$EDITOR_WINDOW_ID" ]]; then
+        echo "Warning: Could not find new editor window for $REPO_NAME"
+        echo "Make sure your editor opens a window with the repository name in the title"
+        exit 1
+    fi
+
+    debug_log "Found new editor window ID: $EDITOR_WINDOW_ID"
+    info_log "Opened editor for $REPO_NAME"
+fi
+
+# Handle terminal window
+debug_log "Opening new Ghostty terminal window..."
+BEFORE_WINDOWS=$(aerospace list-windows --all | awk '{print $1}')
+
+# Create new Ghostty window
+osascript -e "
+tell application \"Ghostty\"
+    activate
+    tell application \"System Events\" to keystroke \"n\" using command down
+end tell
+" >/dev/null 2>&1
+
+TERM_WINDOW_ID=$(wait_for_new_terminal_window "$BEFORE_WINDOWS")
+
+if [[ -z "$TERM_WINDOW_ID" ]]; then
+    echo "Warning: Could not find new Ghostty window"
+    exit 1
+fi
+
+debug_log "Found new terminal window ID: $TERM_WINDOW_ID"
+
+# Give the terminal a moment to be ready
+sleep 0.3
+
+# Send cd command to the terminal
+osascript -e "
+tell application \"Ghostty\"
+    activate
+    tell application \"System Events\"
+        keystroke \"cd ${ABSOLUTE_PATH}\"
+        key code 36
+    end tell
+end tell
+" >/dev/null 2>&1
+
+aerospace move-node-to-workspace --window-id "$TERM_WINDOW_ID" "$WORKSPACE"
+info_log "Opened terminal in $ABSOLUTE_PATH in workspace $WORKSPACE"
+
+# Now move the editor window (after terminal, so it goes to the right)
+aerospace move-node-to-workspace --window-id "$EDITOR_WINDOW_ID" "$WORKSPACE"
+info_log "Moved editor to workspace $WORKSPACE"
+
+# Navigate to the workspace
+aerospace workspace "$WORKSPACE"
+info_log "Switched to workspace $WORKSPACE"

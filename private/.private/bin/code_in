@@ -20,7 +20,6 @@ info_log() {
     echo "$1"
 }
 
-# Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
         -w|--workspace)
@@ -81,17 +80,19 @@ CURRENT_WINDOWS=$(aerospace list-windows --all)
 EXISTING_WINDOW_ID=""
 EXISTING_WORKSPACE=""
 
-debug_log "Checking for existing windows..."
+debug_log "Checking for existing editor windows..."
 
 while IFS= read -r line; do
     WINDOW_ID=$(echo "$line" | awk '{print $1}')
+    WINDOW_APP=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
     WINDOW_INFO=$(echo "$line" | cut -d'|' -f3-)
 
-    if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
-        EXISTING_WINDOW_ID=$WINDOW_ID
-        debug_log "Found existing window: ID=$WINDOW_ID, Info=$WINDOW_INFO"
-
-        break
+    if [[ "$WINDOW_APP" == "Code" ]] || [[ "$WINDOW_APP" == "Cursor" ]] || [[ "$WINDOW_APP" == "Code - Insiders" ]]; then
+        if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
+            EXISTING_WINDOW_ID=$WINDOW_ID
+            debug_log "Found existing $WINDOW_APP window: ID=$WINDOW_ID, Info=$WINDOW_INFO"
+            break
+        fi
     fi
 done <<< "$CURRENT_WINDOWS"
 
@@ -132,10 +133,9 @@ while [[ $ATTEMPT -lt $MAX_ATTEMPTS ]]; do
         WINDOW_ID=$(echo "$line" | awk '{print $1}')
         WINDOW_INFO=$(echo "$line" | cut -d'|' -f3-)
 
-        # Check if this window ID is new
         if ! echo "$BEFORE_WINDOWS" | grep -q "^$WINDOW_ID$"; then
             debug_log "Found new window ID: $WINDOW_ID"
-            # Check if the window info contains the repo name
+
             if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
                 debug_log "Window matches repository: $WINDOW_INFO"
                 NEW_WINDOW_ID=$WINDOW_ID
@@ -149,19 +149,22 @@ while [[ $ATTEMPT -lt $MAX_ATTEMPTS ]]; do
 done
 
 if [[ -z "$NEW_WINDOW_ID" ]]; then
-    debug_log "Rechecking for existing windows after timeout..."
+    debug_log "Rechecking for existing editor windows after timeout..."
     CURRENT_WINDOWS=$(aerospace list-windows --all)
 
     while IFS= read -r line; do
+        WINDOW_APP=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
         WINDOW_INFO=$(echo "$line" | cut -d'|' -f3-)
-        if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
-            info_log "Editor focused existing window for $REPO_NAME instead of creating new one"
-            info_log "Try closing the existing window first if you want to open it in a different workspace"
-            exit 1
+        if [[ "$WINDOW_APP" == "Code" ]] || [[ "$WINDOW_APP" == "Cursor" ]] || [[ "$WINDOW_APP" == "Code - Insiders" ]]; then
+            if echo "$WINDOW_INFO" | grep -q "$REPO_NAME"; then
+                info_log "Editor focused existing window for $REPO_NAME instead of creating new one"
+                info_log "Try closing the existing window first if you want to open it in a different workspace"
+                exit 1
+            fi
         fi
     done <<< "$CURRENT_WINDOWS"
 
-    echo "Warning: Could not find window for $REPO_NAME after opening"
+    echo "Warning: Could not find editor window for $REPO_NAME after opening"
     echo "The editor may have failed to open, or the window title doesn't contain the repository name"
     exit 1
 fi
@@ -173,4 +176,4 @@ aerospace move-node-to-workspace --window-id "$NEW_WINDOW_ID" "$WORKSPACE"
 
 aerospace workspace "$WORKSPACE"
 
-debug_log "Successfully opened $REPO_NAME in workspace $WORKSPACE"
+info_log "Successfully opened $REPO_NAME in workspace $WORKSPACE"

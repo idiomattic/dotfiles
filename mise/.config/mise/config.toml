@@ -2,7 +2,7 @@
 idiomatic_version_file = true
 
 [tools]
-java = "temurin-11"
+java = "temurin-25"
 node = "24.7.0"
 lein = "2.9.9"
 rust = "latest"

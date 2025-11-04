@@ -229,6 +229,10 @@ run = [
 ]
 
 [[on-window-detected]]
+if.app-name-regex-substring = 'LogiTune'
+run = 'move-node-to-workspace Z'
+
+[[on-window-detected]]
 if.app-name-regex-substring = 'zoom'
 run = [
   'layout floating',

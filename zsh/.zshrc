@@ -87,6 +87,7 @@ alias lg="lazygit"
 # Docker aliases
 alias dkillemall='docker kill $(docker ps -qa)'
 alias dps='docker ps --format "{{.Names}} {{.Status}}"'
+alias lzd='lazydocker'
 
 # Development aliases
 alias cleanrundev="lein with-profile dev do clean, deps, run -m clojure.main dev/scripts/figwheel.clj"

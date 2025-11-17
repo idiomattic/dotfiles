@@ -100,6 +100,7 @@ alias ls='ls -lh --color'
 alias cat='bat'
 alias bathelp='bat --plain --language=help'
 alias nv="nvim"
+alias asr="atuin scripts run"
 
 # ============================================
 # EXTERNAL TOOL INTEGRATIONS

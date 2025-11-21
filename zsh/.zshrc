@@ -6,6 +6,7 @@
 # ============================================
 export EDITOR="code -w"
 export PATH="$HOME/.private/bin:$PATH"
+export PATH="/Users/matthewlese/.antigravity/antigravity/bin:$PATH"
 
 # ============================================
 # ZINIT SETUP (Plugin Manager)

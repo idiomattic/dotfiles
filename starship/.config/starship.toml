@@ -1,18 +1,15 @@
 # Left prompt: directory + git branch (on first line), character (on second line)
 format = """
 $directory\
-$git_branch\
-$git_status\
-$line_break\
-$character"""
-
-# Right prompt: language/environment info
-right_format = """
 $java\
 $nodejs\
 $python\
 $rust\
-$golang"""
+$golang\
+$git_branch\
+$git_status\
+$line_break\
+$character"""
 
 add_newline = false
 

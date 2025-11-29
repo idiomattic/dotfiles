@@ -65,6 +65,9 @@ zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-autosuggestions
 zinit light Aloxaf/fzf-tab
 zinit light reegnz/jq-zsh-plugin
+zinit ice depth=1
+zinit light jeffreytse/zsh-vi-mode
+zinit light TunaCuma/zsh-vi-man
 
 # Oh My Zsh snippets
 zinit snippet OMZP::git

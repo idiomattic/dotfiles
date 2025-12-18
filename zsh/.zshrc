@@ -7,6 +7,9 @@
 export EDITOR="code -w"
 export PATH="$HOME/.private/bin:$PATH"
 export PATH="/Users/matthewlese/.antigravity/antigravity/bin:$PATH"
+export PS_ALPHA_BASE_URL="https://alpha.peerspaceapp.com"
+export PS_BETA_BASE_URL="https://beta.peerspaceapp.com"
+export PS_PROD_BASE_URL="https://www.peerspace.com"
 
 # ============================================
 # ZINIT SETUP (Plugin Manager)

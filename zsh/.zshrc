@@ -104,6 +104,11 @@ alias bathelp='bat --plain --language=help'
 alias nv="nvim"
 alias asr="atuin scripts run"
 
+# Posting
+alias posting-alpha='posting --env ~/.config/posting/base.env --env ~/.config/posting/alpha.env'
+alias posting-beta='posting --env ~/.config/posting/base.env --env ~/.config/posting/beta.env'
+alias posting-prod='posting --env ~/.config/posting/base.env --env ~/.config/posting/prod.env'
+
 # ============================================
 # EXTERNAL TOOL INTEGRATIONS
 # ============================================

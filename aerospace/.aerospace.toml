@@ -238,3 +238,11 @@ run = [
   'layout floating',
   'move-node-to-workspace Z'
 ]
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Discord'
+run = 'move-node-to-workspace M'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Parsec'
+run = 'move-node-to-workspace G'

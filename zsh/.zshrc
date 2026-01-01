@@ -106,6 +106,7 @@ alias cat='bat'
 alias bathelp='bat --plain --language=help'
 alias nv="nvim"
 alias asr="atuin scripts run"
+alias zo="zurl open"
 
 # Posting
 alias posting-alpha='posting --env ~/.config/posting/base.env --env ~/.config/posting/alpha.env'

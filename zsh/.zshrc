@@ -107,6 +107,10 @@ alias bathelp='bat --plain --language=help'
 alias nv="nvim"
 alias asr="atuin scripts run"
 alias o="otot open"
+alias l='lsd -l'
+alias la='lsd -a'
+alias lla='lsd -la'
+alias lt='lsd --tree'
 
 # Posting
 alias posting-alpha='posting --env ~/.config/posting/base.env --env ~/.config/posting/alpha.env'

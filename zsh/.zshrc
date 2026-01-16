@@ -111,6 +111,10 @@ alias l='lsd -l'
 alias la='lsd -a'
 alias lla='lsd -la'
 alias lt='lsd --tree'
+alias el='eza -l'
+alias et='eza -T'
+alias ea='eza -a'
+alias ela='eza -la'
 
 # Posting
 alias posting-alpha='posting --env ~/.config/posting/base.env --env ~/.config/posting/alpha.env'

@@ -154,6 +154,8 @@ if [ -f "$HOME/.atuin/bin/env" ]; then
   eval "$(atuin init zsh)"
 fi
 
+eval "$(op-loader env -v)"
+
 # ============================================
 # PROMPT (Must be LAST)
 # ============================================

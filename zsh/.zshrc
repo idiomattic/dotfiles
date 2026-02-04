@@ -147,6 +147,9 @@ if [ -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
   if [[ -f "$HOME/.private/personal-secrets.yaml" ]]; then
     eval "$(p secrets -c "$HOME/.private/personal-secrets.yaml")"
   fi
+else
+  # For personal machine
+  eval "$(op-loader env -vv)"
 fi
 
 # Additional environment sources
@@ -157,8 +160,6 @@ if [ -f "$HOME/.atuin/bin/env" ]; then
   . "$HOME/.atuin/bin/env"
   eval "$(atuin init zsh)"
 fi
-
-eval "$(op-loader env -vv)"
 
 # ============================================
 # PROMPT (Must be LAST)

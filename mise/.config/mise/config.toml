@@ -1,9 +1,10 @@
 [settings]
 idiomatic_version_file = true
+idiomatic_version_file_enable_tools = ["java", "node"]
 
 [tools]
 java = "temurin-25"
-node = "24.7.0"
+node = "22"
 lein = "2.9.9"
 rust = "latest"
 clojure = "latest"

@@ -117,7 +117,7 @@ automatically-unhide-macos-hidden-apps = false
     alt-equal = 'resize smart +50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-    alt-1 = ['exec-and-forget open /Applications/1Password.app','workspace 1']
+    alt-1 = 'workspace 1'
     alt-2 = 'workspace 2'
     alt-3 = 'workspace 3'
     alt-4 = 'workspace 4'
@@ -126,7 +126,7 @@ automatically-unhide-macos-hidden-apps = false
     alt-7 = 'workspace 7'
     alt-8 = 'workspace 8'
     alt-9 = 'workspace 9'
-    alt-a = 'workspace A' # In your config, you can drop workspace bindings that you don't need
+    alt-a = 'workspace A'
     alt-b = 'workspace B'
     alt-c = 'workspace C'
     alt-d = 'workspace D'

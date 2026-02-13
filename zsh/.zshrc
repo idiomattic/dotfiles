@@ -149,7 +149,7 @@ if [ -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
   fi
 else
   # For personal machine
-  eval "$(op-loader env -vv)"
+  eval "$(op-loader env --cache-ttl 1m -vv)"
 fi
 
 # Additional environment sources

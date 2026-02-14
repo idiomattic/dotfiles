@@ -17,7 +17,6 @@ layout {
 
                 hide_frame_for_single_pane "false"
 
-                // Locked is the default/resting mode - subtle heart, no background
                 mode_locked      "#[bg=#8AADF4,fg=#24273A,bold] 󰌾 "
                 mode_normal      "#[bg=#A6DA95,fg=#24273A,bold] NORMAL "
                 mode_pane        "#[bg=#F5A97F,fg=#24273A,bold] PANE "
@@ -52,7 +51,8 @@ layout {
                 tab_truncate_end_format   "#[fg=#EED49F]   +{count} "
 
                 datetime        "#[fg=#6E738D,bold] {format} "
-                datetime_format "%H:%M:%S"
+                datetime_format "%I:%M%p"
+                datetime_timezone "America/Los_Angeles"
             }
         }
     }

@@ -290,9 +290,9 @@ plugins {
     }
 
     zjstatus location="file:~/.config/zellij/plugins/zjstatus.wasm" {
-        format_left   "{mode} {tabs}"
+        format_left   "{mode} {tabs}"
         format_center ""
-        format_right  "{pipe_zjstatus_hints}{datetime}#[bg=#8AADF4,fg=#24273A,bold] {session} "
+        format_right  "{pipe_zjstatus_hints}{datetime}#[bg=#8AADF4,fg=#24273A,bold] {session}"
         format_space  ""
 
         pipe_zjstatus_hints_format "{output}"

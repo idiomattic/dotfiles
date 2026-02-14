@@ -292,7 +292,7 @@ plugins {
 
     zjstatus-hints location="file:~/.config/zellij/plugins/zjstatus-hints.wasm" {
         max_length "80"
-        overflow_str "..."
+        overflow_str "  "
         pipe_name "zjstatus_hints"
         //hide_in_base_mode false
     }

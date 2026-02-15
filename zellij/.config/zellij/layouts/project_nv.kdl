@@ -14,7 +14,7 @@ layout {
     }
     tab name="editor" {
         pane {
-            command "hx"
+            command "nv"
         }
     }
 }

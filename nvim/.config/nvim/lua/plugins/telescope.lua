@@ -14,7 +14,28 @@ return {
     -- Browse directory structure & create files
     "nvim-telescope/telescope-file-browser.nvim",
     dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
-    config = function() require("telescope").load_extension "file_browser" end,
+    config = function()
+      require("telescope").setup {
+        extensions = {
+          file_browser = {
+            hidden = true,
+          },
+        },
+      }
+      require("telescope").load_extension "file_browser"
+    end,
     event = "User AstroFile",
+  },
+  {
+    "nvim-telescope/telescope.nvim",
+    opts = function(_, opts)
+      opts.pickers = opts.pickers or {}
+      opts.pickers.find_files = vim.tbl_extend("force", opts.pickers.find_files or {}, {
+        hidden = true,
+        no_ignore = false,
+        no_ignore_parent = false,
+      })
+      return opts
+    end,
   },
 }

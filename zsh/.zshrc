@@ -145,7 +145,7 @@ if [ -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
 
   # Load personal secrets (separate 1Password account)
   if [[ -f "$HOME/.private/personal-secrets.yaml" ]]; then
-    eval "$(p secrets -c "$HOME/.private/personal-secrets.yaml")"
+    eval "$(p secrets -i -c "$HOME/.private/personal-secrets.yaml")"
   fi
 else
   # For personal machine

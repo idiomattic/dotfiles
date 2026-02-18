@@ -144,7 +144,7 @@ if [ -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
   source /Users/matthewlese/peerspace/dev-env/setup/init.sh
 else
   # For personal machine
-  eval "$(op-loader env inject --cache-ttl 1m -vv)"
+  eval "$(op-loader env inject --cache-ttl 10m --cache-lock-wait 60s -vv)"
 fi
 
 # Additional environment sources

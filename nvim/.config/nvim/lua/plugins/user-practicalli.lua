@@ -282,6 +282,16 @@ return {
             "<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>",
             desc = "Grep Word",
           },
+          ["<Leader>ffig"] = {
+            function()
+              require("telescope.builtin").find_files {
+                hidden = true,
+                no_ignore = true,
+                no_ignore_parent = true,
+              }
+            end,
+            desc = "Find Ignored Files",
+          },
 
           -- Projects
           ["<Leader>fp"] = { "<cmd>Telescope projects<cr>", desc = "Projects" },

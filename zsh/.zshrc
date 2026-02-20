@@ -100,9 +100,7 @@ alias checkport="sudo lsof -i :"
 alias killpid="kill -9"
 
 # Tool replacements
-alias grep='rg'
 alias ls='ls -lh --color'
-alias cat='bat'
 alias bathelp='bat --plain --language=help'
 alias nv="nvim"
 alias asr="atuin scripts run"

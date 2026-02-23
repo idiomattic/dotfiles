@@ -1,0 +1,85 @@
+// Place your key bindings in this file to override the defaults
+[
+  {
+    "key": "shift+cmd+r cmd+t",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Run fmt"
+  },
+  {
+    "key": "shift+cmd+b shift+cmd+t",
+    "command": "workbench.action.tasks.build",
+    "when": "taskCommandsRegistered"
+  },
+  {
+    "key": "shift+cmd+b",
+    "command": "-workbench.action.tasks.build",
+    "when": "taskCommandsRegistered"
+  },
+  {
+    "key": "ctrl+alt+cmd+l",
+    "command": "calva.loadFile",
+    "when": "calva:keybindingsEnabled && editorLangId == 'clojure'"
+  },
+  {
+    "key": "ctrl+alt+c enter",
+    "command": "-calva.loadFile",
+    "when": "calva:keybindingsEnabled && editorLangId == 'clojure'"
+  },
+  {
+    "key": "ctrl+alt+cmd+s",
+    "command": "calva.jackIn",
+    "when": "workspaceFolderCount > 0"
+  },
+  {
+    "key": "ctrl+alt+cmd+r",
+    "command": "calva.clojureLsp.restart"
+},
+{
+    "key": "ctrl+alt+h",
+    "command": "workbench.action.previousEditor"
+},
+{
+    "key": "shift+cmd+[",
+    "command": "-workbench.action.previousEditor"
+},
+{
+    "key": "ctrl+alt+l",
+    "command": "workbench.action.nextEditor"
+},
+{
+    "key": "shift+cmd+]",
+    "command": "-workbench.action.nextEditor"
+},
+{
+    "key": "ctrl+alt+j",
+    "command": "workbench.action.focusBelowGroup"
+},
+{
+    "key": "cmd+k cmd+down",
+    "command": "-workbench.action.focusBelowGroup"
+},
+{
+    "key": "ctrl+alt+k",
+    "command": "workbench.action.focusAboveGroup"
+},
+{
+    "key": "cmd+k cmd+up",
+    "command": "-workbench.action.focusAboveGroup"
+},
+{
+    "key": "ctrl+shift+alt+h",
+    "command": "workbench.action.moveEditorToLeftGroup"
+},
+{
+    "key": "ctrl+shift+alt+l",
+    "command": "workbench.action.moveEditorToRightGroup"
+},
+{
+    "key": "ctrl+shift+alt+k",
+    "command": "workbench.action.moveEditorToAboveGroup"
+},
+{
+    "key": "ctrl+shift+alt+j",
+    "command": "workbench.action.moveEditorToBelowGroup"
+}
+]

@@ -67,11 +67,11 @@
     "command": "-workbench.action.focusAboveGroup"
 },
 {
-    "key": "ctrl+shift+alt+h",
+    "key": "ctrl+shift+alt+cmd+h",
     "command": "workbench.action.moveEditorToLeftGroup"
 },
 {
-    "key": "ctrl+shift+alt+l",
+    "key": "ctrl+shift+alt+cmd+l",
     "command": "workbench.action.moveEditorToRightGroup"
 },
 {
@@ -81,5 +81,21 @@
 {
     "key": "ctrl+shift+alt+j",
     "command": "workbench.action.moveEditorToBelowGroup"
+},
+{
+    "key": "ctrl+shift+alt+l",
+    "command": "workbench.action.moveEditorRightInGroup"
+},
+{
+    "key": "cmd+k shift+cmd+right",
+    "command": "-workbench.action.moveEditorRightInGroup"
+},
+{
+    "key": "ctrl+shift+alt+h",
+    "command": "workbench.action.moveEditorLeftInGroup"
+},
+{
+    "key": "cmd+k shift+cmd+left",
+    "command": "-workbench.action.moveEditorLeftInGroup"
 }
 ]

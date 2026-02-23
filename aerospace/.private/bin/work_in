@@ -167,7 +167,7 @@ wait_for_new_terminal_window() {
     echo "$found_id"
 }
 
-ZELLIJ_CMD="zellij -l $LAYOUT"
+ZELLIJ_CMD="cd '$ABSOLUTE_PATH' && zellij -l $LAYOUT"
 
 # Handle editor window
 debug_log "Checking for existing editor window..."

@@ -32,3 +32,18 @@ gbcopy() {
     return 1
   fi
 }
+
+backup() {
+  local og_file="$1"
+  local base="${og_file}.$(date +%F)"
+  local dest="$base"
+  local i=1
+
+  while [[ -e "$dest" ]]; do
+    dest="${base}.${i}"
+    ((i++))
+  done
+
+  cp "$og_file" "$dest"
+  echo "Backed up to: $dest"
+}

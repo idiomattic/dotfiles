@@ -167,7 +167,7 @@ wait_for_new_terminal_window() {
     echo "$found_id"
 }
 
-ZELLIJ_CMD="cd '$ABSOLUTE_PATH' && zellij -l $LAYOUT"
+ZELLIJ_CMD="zellij -l $LAYOUT"
 
 # Handle editor window
 debug_log "Checking for existing editor window..."
@@ -194,6 +194,10 @@ else
     info_log "Opened editor for $REPO_NAME"
 fi
 
+# Write pending commands for the new shell to pick up after .zshrc finishes
+# (zshrc must source ~/.work_in_progress at the end, after `op-loader`)
+printf 'cd %q && zellij -l %q\n' "$ABSOLUTE_PATH" "$LAYOUT" > ~/.work_in_progress
+
 # Handle terminal window
 debug_log "Opening new Ghostty terminal window..."
 BEFORE_WINDOWS=$(aerospace list-windows --all | awk '{print $1}')
@@ -214,20 +218,6 @@ if [[ -z "$TERM_WINDOW_ID" ]]; then
 fi
 
 debug_log "Found new terminal window ID: $TERM_WINDOW_ID"
-
-# Give the terminal a moment to be ready
-sleep 0.3
-
-# Send zellij command to the terminal
-osascript -e "
-tell application \"Ghostty\"
-    activate
-    tell application \"System Events\"
-        keystroke \"${ZELLIJ_CMD}\"
-        key code 36
-    end tell
-end tell
-" >/dev/null 2>&1
 
 aerospace move-node-to-workspace --window-id "$TERM_WINDOW_ID" "$WORKSPACE"
 info_log "Opened terminal in $ABSOLUTE_PATH in workspace $WORKSPACE"

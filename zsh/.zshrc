@@ -154,6 +154,13 @@ if [ -f "$HOME/.atuin/bin/env" ]; then
   eval "$(atuin init zsh)"
 fi
 
+# For ~/.private/bin/work_in - it writes a zellij init command to be run *after* `op-loader`, etc. to avoid race conditions
+if [[ -f ~/.work_in_progress ]]; then
+  local _f=$(mktemp /tmp/work_in_XXXXXX)
+  mv ~/.work_in_progres "$_f" 2>/dev/null && source "$_f"
+  rm -f "$_f"
+fi
+
 # ============================================
 # PROMPT (Must be LAST)
 # ============================================

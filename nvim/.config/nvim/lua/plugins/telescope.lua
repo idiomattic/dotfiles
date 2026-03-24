@@ -29,6 +29,8 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     opts = function(_, opts)
+      opts.defaults = opts.defaults or {}
+      opts.defaults.borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
       opts.pickers = opts.pickers or {}
       opts.pickers.find_files = vim.tbl_extend("force", opts.pickers.find_files or {}, {
         hidden = true,

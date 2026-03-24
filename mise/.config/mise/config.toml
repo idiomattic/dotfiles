@@ -8,3 +8,4 @@ node = "22"
 lein = "2.9.9"
 rust = "latest"
 clojure = "latest"
+babashka = { version = "1.12.216", exe = "bb" }

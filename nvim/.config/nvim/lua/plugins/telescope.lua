@@ -37,6 +37,9 @@ return {
         no_ignore = false,
         no_ignore_parent = false,
       })
+      opts.pickers.live_grep = vim.tbl_extend("force", opts.pickers.live_grep or {}, {
+        additional_args = { "--hidden" },
+      })
       return opts
     end,
   },

@@ -37,14 +37,17 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -h|--help)
-            echo "Usage: work_in [path] [-w|--workspace WORKSPACE] [-l|--layout LAYOUT] [-e|--editor EDITOR] [-d|--debug]"
+            echo "Usage: work_in [path] [-w|--workspace WORKSPACE] [-l|--layout LAYOUT_EXPR] [-e|--editor EDITOR] [-d|--debug]"
             echo ""
             echo "Open a code repository and terminal in a specific aerospace workspace"
             echo ""
             echo "Arguments:"
             echo "  path              Path to repository (default: current directory)"
             echo "  -w, --workspace   Aerospace workspace ID to move windows to"
-            echo "  -l, --layout      Zellij layout to use (required)"
+            echo "  -l, --layout      Zellij layout expression for zjlayout (required)"
+            echo "                    e.g. '(_/_)|_'  — left col top/bottom, right pane"
+            echo "                         '(_|_)/_'  — top row split, full bottom"
+            echo "                         '_|_|_;_'  — tab1: 3 cols, tab2: single pane"
             echo "  -e, --editor      Editor command to use (default: code)"
             echo "  -d, --debug       Enable debug output"
             echo "  -h, --help        Show this help message"
@@ -65,7 +68,7 @@ if [[ -z "$WORKSPACE" ]]; then
 fi
 
 if [[ -z "$LAYOUT" ]]; then
-    echo "Error: Layout not specified. Use -l or --layout to specify a zellij layout."
+    echo "Error: Layout not specified. Use -l or --layout to specify a zjlayout expression."
     exit 1
 fi
 
@@ -80,7 +83,7 @@ REPO_NAME=$(basename "$ABSOLUTE_PATH")
 debug_log "Repository: $REPO_NAME"
 debug_log "Absolute path: $ABSOLUTE_PATH"
 debug_log "Target workspace: $WORKSPACE"
-debug_log "Zellij layout: $LAYOUT"
+debug_log "Zellij layout expression: $LAYOUT"
 
 find_editor_window_by_repo() {
     local repo_name="$1"
@@ -167,7 +170,7 @@ wait_for_new_terminal_window() {
     echo "$found_id"
 }
 
-ZELLIJ_CMD="zellij -l $LAYOUT"
+ZELLIJ_CMD="zjlayout $LAYOUT"
 
 # Handle editor window
 debug_log "Checking for existing editor window..."
@@ -196,7 +199,7 @@ fi
 
 # Write pending commands for the new shell to pick up after .zshrc finishes
 # (zshrc must source ~/.work_in_progress at the end, after `op-loader`)
-printf 'cd %q && zellij -l %q\n' "$ABSOLUTE_PATH" "$LAYOUT" > ~/.work_in_progress
+printf 'cd %q && zjlayout %q\n' "$ABSOLUTE_PATH" "$LAYOUT" > ~/.work_in_progress
 
 # Handle terminal window
 debug_log "Opening new Ghostty terminal window..."

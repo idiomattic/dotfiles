@@ -1,0 +1,207 @@
+#!/usr/bin/env bb
+
+(require '[clojure.string :as str]
+         '[babashka.process :as p]
+         '[babashka.fs :as fs])
+
+;; --- Tokenizer ---
+;;
+;; Strips whitespace from the input string and splits it into single-character
+;; tokens. Every character must be one of the six DSL symbols; anything else
+;; (letters, digits, punctuation, etc.) is rejected immediately.
+
+(def valid-chars #{"_" "|" "/" "(" ")" ";"})
+
+(defn tokenize [s]
+  (let [toks (->> s
+                  (remove #(Character/isWhitespace ^char %))
+                  (mapv str))]
+    (doseq [t toks]
+      (when-not (valid-chars t)
+        (binding [*out* *err*]
+          (println (str "Invalid character: " (pr-str t))))
+        (System/exit 1)))
+    toks))
+
+;; --- Parser ---
+;;
+;; Turns a flat list of tokens into a tree of {:type :pane}, {:type :hsplit},
+;; and {:type :vsplit} nodes, grouped into a vector of tabs.
+;;
+;; The parser is a recursive descent parser with three levels of precedence:
+;;
+;;   1. Tab separator (;)   — lowest precedence, splits input into tabs.
+;;      Everything between semicolons is parsed as one independent tab.
+;;
+;;   2. Column operator (|) — medium precedence, places panes side by side
+;;      (left-to-right). Think of | as a vertical divider drawn between panes.
+;;
+;;   3. Row operator (/)    — highest precedence, stacks panes top-to-bottom.
+;;      Think of / as a horizontal divider drawn between panes.
+;;
+;; Because / binds tighter than |, an expression like:
+;;
+;;   _ | _ / _
+;;
+;; is parsed as:
+;;
+;;   _ | (_ / _)
+;;
+;; ...meaning: one pane on the left, and on the right a column split into a
+;; top pane and a bottom pane. If you want the opposite grouping — a top row
+;; of two side-by-side panes with a full-width pane below — use parentheses:
+;;
+;;   (_ | _) / _
+;;
+;; Parentheses can nest arbitrarily to override the default precedence.
+
+(def ^:private pos (atom 0))
+(def ^:private tokens (atom []))
+
+(defn- peek-tok [] (get @tokens @pos))
+
+(defn- consume! []
+  (let [t (peek-tok)]
+    (swap! pos inc)
+    t))
+
+(declare parse-columns)
+
+;; Parses a single "atom": either a lone pane (_) or a parenthesized
+;; sub-expression that can contain any combination of |, /, and further parens.
+(defn- parse-pane-or-group []
+  (case (peek-tok)
+    "_" (do (consume!) {:type :pane})
+    "(" (do (consume!)
+            (let [e (parse-columns)]
+              (when (not= (consume!) ")")
+                (binding [*out* *err*] (println "Expected )"))
+                (System/exit 1))
+              e))
+    (do (binding [*out* *err*]
+          (println (str "Unexpected token: " (pr-str (peek-tok)))))
+        (System/exit 1))))
+
+;; Parses one or more panes/groups joined by / (the row operator).
+;; Collects all operands into a single :vsplit node so that _ / _ / _ produces
+;; three equally-sized rows rather than a nested binary tree.
+;; If there is only one operand (no / present), returns it unwrapped.
+(defn- parse-rows []
+  (loop [children [(parse-pane-or-group)]]
+    (if (= (peek-tok) "/")
+      (do (consume!) (recur (conj children (parse-pane-or-group))))
+      (if (= 1 (count children))
+        (first children)
+        {:type :vsplit :children children}))))
+
+;; Parses one or more row-groups joined by | (the column operator).
+;; Each operand is itself a row-expression, so / is evaluated first.
+;; Collects all operands into a single :hsplit node so that _ | _ | _ produces
+;; three equally-sized columns rather than a nested binary tree.
+;; If there is only one operand (no | present), returns it unwrapped.
+(defn- parse-columns []
+  (loop [children [(parse-rows)]]
+    (if (= (peek-tok) "|")
+      (do (consume!) (recur (conj children (parse-rows))))
+      (if (= 1 (count children))
+        (first children)
+        {:type :hsplit :children children}))))
+
+;; Parses the full input as one or more tabs separated by semicolons.
+;; Each tab is an independent column-expression (which may contain rows, groups, etc.).
+;; Returns a vector of tab AST nodes.
+(defn- parse-tabs []
+  (loop [tabs [(parse-columns)]]
+    (if (= (peek-tok) ";")
+      (do (consume!) (recur (conj tabs (parse-columns))))
+      tabs)))
+
+;; --- KDL generation ---
+;;
+;; Walks the AST and emits Zellij layout KDL. The mapping is:
+;;
+;;   :pane   -> pane                                   (a single terminal pane)
+;;   :hsplit -> pane split_direction="horizontal" { }   (children placed in columns)
+;;   :vsplit -> pane split_direction="vertical" { }     (children stacked in rows)
+
+(defn- ast->kdl [node indent]
+  (let [pad (str/join (repeat indent "    "))]
+    (case (:type node)
+      :pane (str pad "pane\n")
+      :hsplit (str pad "pane split_direction=\"horizontal\" {\n"
+                   (apply str (map #(ast->kdl % (inc indent)) (:children node)))
+                   pad "}\n")
+      :vsplit (str pad "pane split_direction=\"vertical\" {\n"
+                   (apply str (map #(ast->kdl % (inc indent)) (:children node)))
+                   pad "}\n"))))
+
+;; Wraps the per-tab KDL in a full layout block that includes the
+;; default_tab_template with zjstatus (the status bar plugin).
+;; When there is a single tab it is named "default"; multiple tabs
+;; are named "tab1", "tab2", etc.
+(defn- tabs->layout-kdl [tabs]
+  (str "layout {\n"
+       "    default_tab_template {\n"
+       "        children\n"
+       "        pane size=1 borderless=true {\n"
+       "            plugin location=\"zjstatus\"\n"
+       "        }\n"
+       "    }\n"
+       "\n"
+       (apply str
+              (map-indexed
+               (fn [i tab-ast]
+                 (let [name (if (= 1 (count tabs))
+                              "default"
+                              (str "tab" (inc i)))]
+                   (str "    tab name=\"" name "\" {\n"
+                        (ast->kdl tab-ast 2)
+                        "    }\n")))
+               tabs))
+       "}\n"))
+
+;; --- Main ---
+;;
+;; Parses the layout string, generates a KDL layout file in a temp directory,
+;; and execs zellij with that layout (replacing this process). An optional
+;; second argument names the zellij session.
+
+(defn -main [& args]
+  (when (or (empty? args) (= (first args) "--help") (= (first args) "-h"))
+    (println "Usage: zjlayout LAYOUT [SESSION_NAME]")
+    (println)
+    (println "Layout DSL:")
+    (println "  _          pane")
+    (println "  |          columns (side by side)")
+    (println "  /          rows (top / bottom)")
+    (println "  ( ... )    grouping")
+    (println "  ;          tab separator")
+    (println)
+    (println "Precedence: / binds tighter than |")
+    (println "  _ | _ / _  =>  _ | (_ / _)  left pane, right col top/bottom")
+    (println)
+    (println "Examples:")
+    (println "  zjlayout '(_/_)|_'          # left col top/bottom, right pane")
+    (println "  zjlayout '(_|_)/_'          # top row split, full bottom")
+    (println "  zjlayout '_|_|_;_'          # tab1: 3 cols, tab2: single pane")
+    (println "  zjlayout '_|_' my-session   # two columns, named session")
+    (System/exit (if (empty? args) 1 0)))
+
+  (let [input (first args)
+        session-name (second args)
+        toks (tokenize input)]
+    (reset! pos 0)
+    (reset! tokens toks)
+    (let [tabs (parse-tabs)
+          _ (when (peek-tok)
+              (binding [*out* *err*]
+                (println (str "Unexpected trailing token: " (pr-str (peek-tok)))))
+              (System/exit 1))
+          kdl (tabs->layout-kdl tabs)
+          tmp (str (fs/create-temp-file {:prefix "zjlayout-" :suffix ".kdl"}))]
+      (spit tmp kdl)
+      (let [cmd (cond-> ["zellij" "--layout" tmp]
+                  session-name (into ["-s" session-name]))]
+        (p/exec cmd)))))
+
+(apply -main *command-line-args*)

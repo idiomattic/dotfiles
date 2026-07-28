@@ -1,0 +1,70 @@
+#!/usr/bin/env bb
+;; mkcsv - produce a CSV on stdout from comma-separated ROW arguments.
+(ns mkcsv
+  (:require [babashka.cli :as cli]
+            [clojure.string :as str]))
+
+(def usage
+  (str/trim "
+Usage: mkcsv [-H|--header-row \"col1,col2,...\"] ROW...
+
+Produce a CSV on stdout from comma-separated ROW arguments.
+
+  -H, --header-row  Comma-separated column headers (emitted as the first line).
+                    When omitted, the column count is inferred from the first row.
+  -h, --help        Show this help.
+
+Fields are split on ',' and trimmed. Consecutive commas denote an empty field
+(\"a,,c\" -> a | <empty> | c). Every row must have the same number of fields as
+the header (or, headerless, as the first row); a mismatch is a hard error.
+
+Note: because ',' is the field delimiter, a value cannot contain a literal
+comma. Fields containing '\"' or newlines are quoted per RFC 4180.
+
+Examples:
+  mkcsv -H \"name,age\" \"Alice,30\" \"Bob,25\" > people.csv   # with header row
+  mkcsv \"Alice,30\" \"Bob,25\"                              # headerless
+"))
+
+(def spec
+  {:header-row {:alias :H :ref "<cols>" :desc "Comma-separated column headers"}
+   :help       {:alias :h :coerce :boolean :desc "Show this help"}})
+
+(defn split-fields
+  "Split on ',' keeping empty trailing fields, then trim each field."
+  [s]
+  (mapv str/trim (str/split s #"," -1)))
+
+(defn csv-field
+  "Quote a field per RFC 4180 only when it contains \", comma, CR or LF."
+  [s]
+  (if (re-find #"[\",\r\n]" s)
+    (str \" (str/replace s "\"" "\"\"") \")
+    s))
+
+(defn csv-line [fields]
+  (str/join "," (map csv-field fields)))
+
+(defn die! [code msg]
+  (binding [*out* *err*] (println msg))
+  (System/exit code))
+
+(defn -main [argv]
+  (let [{:keys [opts args]} (cli/parse-args argv {:spec spec})]
+    (when (:help opts)
+      (println usage)
+      (System/exit 0))
+    (let [header (some-> (:header-row opts) split-fields)
+          rows   (mapv split-fields args)]
+      (when (and (nil? header) (empty? rows))
+        (die! 2 usage))
+      (let [width (if header (count header) (count (first rows)))
+            ref   (if header "header" "first row")]
+        (doseq [[i r] (map-indexed vector rows)]
+          (when (not= (count r) width)
+            (die! 1 (format "mkcsv: row %d has %d field(s), expected %d (from %s): %s"
+                            (inc i) (count r) width ref (pr-str (nth args i))))))
+        (when header (println (csv-line header)))
+        (doseq [r rows] (println (csv-line r)))))))
+
+(-main *command-line-args*)

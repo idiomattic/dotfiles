@@ -1,17 +1,18 @@
 #!/usr/bin/env bb
 ;; mkcsv - produce a CSV on stdout from comma-separated ROW arguments.
 (ns mkcsv
-  (:require [babashka.cli :as cli]
+  (:require [clojure.tools.cli :as cli]
             [clojure.string :as str]))
 
 (def usage
   (str/trim "
-Usage: mkcsv [-H|--header-row \"col1,col2,...\"] ROW...
+Usage: mkcsv [-H|--header-row \"col1,col2,...\"] [-o|--out <path>] ROW...
 
-Produce a CSV on stdout from comma-separated ROW arguments.
+Produce a CSV from comma-separated ROW arguments (stdout by default).
 
   -H, --header-row  Comma-separated column headers (emitted as the first line).
                     When omitted, the column count is inferred from the first row.
+  -o, --out <path>  Write to <path> instead of stdout (overwrites if it exists).
   -h, --help        Show this help.
 
 Fields are split on ',' and trimmed. Consecutive commas denote an empty field
@@ -21,14 +22,18 @@ the header (or, headerless, as the first row); a mismatch is a hard error.
 Note: because ',' is the field delimiter, a value cannot contain a literal
 comma. Fields containing '\"' or newlines are quoted per RFC 4180.
 
+Options may appear before, after, or between ROW arguments. Use '--' before a
+ROW that begins with '-' (e.g. mkcsv -- \"-5,3\").
+
 Examples:
-  mkcsv -H \"name,age\" \"Alice,30\" \"Bob,25\" > people.csv   # with header row
-  mkcsv \"Alice,30\" \"Bob,25\"                              # headerless
+  mkcsv -H \"name,age\" \"Alice,30\" \"Bob,25\" -o people.csv  # with header row
+  mkcsv \"Alice,30\" \"Bob,25\"                              # headerless, to stdout
 "))
 
-(def spec
-  {:header-row {:alias :H :ref "<cols>" :desc "Comma-separated column headers"}
-   :help       {:alias :h :coerce :boolean :desc "Show this help"}})
+(def cli-options
+  [["-H" "--header-row COLS" "Comma-separated column headers"]
+   ["-o" "--out PATH" "Write to PATH instead of stdout"]
+   ["-h" "--help" "Show this help"]])
 
 (defn split-fields
   "Split on ',' keeping empty trailing fields, then trim each field."
@@ -50,12 +55,14 @@ Examples:
   (System/exit code))
 
 (defn -main [argv]
-  (let [{:keys [opts args]} (cli/parse-args argv {:spec spec})]
-    (when (:help opts)
+  (let [{:keys [options arguments errors]} (cli/parse-opts argv cli-options)]
+    (when (seq errors)
+      (die! 2 (str (str/join "\n" errors) "\n\n" usage)))
+    (when (:help options)
       (println usage)
       (System/exit 0))
-    (let [header (some-> (:header-row opts) split-fields)
-          rows   (mapv split-fields args)]
+    (let [header (some-> (:header-row options) split-fields)
+          rows   (mapv split-fields arguments)]
       (when (and (nil? header) (empty? rows))
         (die! 2 usage))
       (let [width (if header (count header) (count (first rows)))
@@ -63,8 +70,12 @@ Examples:
         (doseq [[i r] (map-indexed vector rows)]
           (when (not= (count r) width)
             (die! 1 (format "mkcsv: row %d has %d field(s), expected %d (from %s): %s"
-                            (inc i) (count r) width ref (pr-str (nth args i))))))
-        (when header (println (csv-line header)))
-        (doseq [r rows] (println (csv-line r)))))))
+                            (inc i) (count r) width ref (pr-str (nth arguments i))))))
+        (let [lines (cond->> (map csv-line rows)
+                      header (cons (csv-line header)))
+              text  (str (str/join "\n" lines) "\n")]
+          (if-let [dest (:out options)]
+            (spit dest text)
+            (print text)))))))
 
 (-main *command-line-args*)

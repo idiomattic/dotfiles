@@ -46,13 +46,6 @@ setopt hist_save_no_dups
 setopt hist_ignore_dups
 setopt hist_find_no_dups
 
-# Keybindings
-bindkey -e
-bindkey '^p' history-search-backward
-bindkey '^n' history-search-forward
-bindkey '^[w' kill-region
-bindkey '^j' jq-complete
-
 # Completion styling
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
@@ -63,6 +56,15 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 # ============================================
 # PLUGINS
 # ============================================
+# Vim mode for the line editor
+# ZVM_INIT_MODE=sourcing makes the plugin initialize now, so later bindkey
+# calls and tool integrations (fzf, atuin) are not overwritten at first prompt
+ZVM_INIT_MODE=sourcing
+# Yanks and deletes also copy to the system clipboard (auto-detects pbcopy)
+ZVM_SYSTEM_CLIPBOARD_ENABLED=true
+zinit ice depth=1
+zinit light jeffreytse/zsh-vi-mode
+
 zinit light zsh-users/zsh-syntax-highlighting
 zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-autosuggestions
@@ -73,6 +75,15 @@ zinit light reegnz/jq-zsh-plugin
 zinit snippet OMZP::git
 zinit snippet OMZP::sudo
 zinit snippet OMZP::command-not-found
+
+# ============================================
+# KEYBINDINGS
+# ============================================
+# These run after zsh-vi-mode initializes, so they bind into the vi keymaps
+bindkey '^p' history-search-backward
+bindkey '^n' history-search-forward
+bindkey '^[w' kill-region
+bindkey '^j' jq-complete
 
 # ============================================
 # CUSTOM FUNCTIONS
@@ -168,6 +179,13 @@ fi
 # ============================================
 # PROMPT (Must be LAST)
 # ============================================
+# Re-sourcing this file makes starship wrap its own zle-keymap-select widget,
+# which recurses on every vi-mode switch (FUNCNEST error). Reset it first.
+if [[ ${widgets[zle-keymap-select]:-} == user:starship_zle-keymap-select* ]]; then
+  zle -D zle-keymap-select 2>/dev/null
+  unset __starship_preserved_zle_keymap_select
+fi
+
 eval "$(starship init zsh)"
 
 FIRST_PROMPT=1

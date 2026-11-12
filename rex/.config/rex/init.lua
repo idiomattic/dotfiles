@@ -372,6 +372,12 @@ rex.bind("tmux/o", "pane.focus_next")
 rex.bind("tmux/p", "then_normal", { action = "client.tab.previous" })
 rex.bind("tmux/z", "then_normal", { action = "pane.zoom" })
 
--- Ghostty tab navigation.
+-- Tab navigation: ctrl+alt targets panes, alt+cmd targets tabs.
 rex.bind("alt+cmd+left", "client.tab.previous")
 rex.bind("alt+cmd+right", "client.tab.next")
+rex.bind("alt+cmd+up", "client.tab.previous")
+rex.bind("alt+cmd+down", "client.tab.next")
+rex.bind("alt+cmd+k", "client.tab.previous")
+rex.bind("alt+cmd+j", "client.tab.next")
+rex.bind("shift+alt+cmd+k", "client.tab.move", { direction = "backward" })
+rex.bind("shift+alt+cmd+j", "client.tab.move", { direction = "forward" })

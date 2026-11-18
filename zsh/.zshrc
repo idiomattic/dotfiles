@@ -151,10 +151,6 @@ eval "$(zoxide init zsh)"
 # Work-specific setup (conditional - only if file exists)
 if [ -f "/Users/matthewlese/peerspace/dev-env/setup/init.sh" ]; then
   source /Users/matthewlese/peerspace/dev-env/setup/init.sh
-  # Load personal secrets (separate 1Password account)
-  if [[ -f "$HOME/.config/p/personal-secrets.yaml" ]]; then
-    eval "$(DEBUG=true p secrets-load -c "$HOME/.config/p/personal-secrets.yaml")"
-  fi
 else
   # For personal machine
   eval "$(op-loader env inject --cache-ttl 10m --cache-lock-wait 60s -vv)"
